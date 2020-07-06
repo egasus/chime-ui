@@ -5,7 +5,7 @@ const parameters = queryString.parse(window.location.search);
 export const baseUrl =
   parameters.api_url ||
   process.env.REACT_APP_API_URL ||
-  "https://selfiepop-api.herokuapp.com";
+  "http://localhost:8080";
 
 function attachAuthorizationHeader(requestConfig) {
   const token = localStorage.getItem("token");
@@ -60,7 +60,7 @@ export async function get(path, queryParams = {}) {
 export async function put(path, content) {
   const response = await request(path, {
     method: "put",
-    data: JSON.stringify(content),
+    data: queryString.stringify(content),
   });
 
   return response && response.data;
@@ -69,7 +69,7 @@ export async function put(path, content) {
 export async function patch(path, content) {
   const response = await request(path, {
     method: "patch",
-    data: JSON.stringify(content),
+    data: queryString.stringify(content),
   });
 
   return response && response.data;
