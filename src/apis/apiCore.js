@@ -5,7 +5,7 @@ const parameters = queryString.parse(window.location.search);
 export const baseUrl =
   parameters.api_url ||
   process.env.REACT_APP_API_URL ||
-  "http://localhost:8080";
+  "https://selfiepop-api.herokuapp.com";
 
 function attachAuthorizationHeader(requestConfig) {
   const token = localStorage.getItem("token");
