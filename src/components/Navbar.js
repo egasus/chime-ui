@@ -26,9 +26,11 @@ const useStyles = makeStyles((theme) => ({
 function ButtonAppBar({ history }) {
   const classes = useStyles();
   const isLoggedIn = !!localStorage.getItem("token");
+  const isMeetingRoute = history.location.pathname.includes("meeting");
 
   return (
-    isLoggedIn && (
+    isLoggedIn &&
+    !isMeetingRoute && (
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>

@@ -17,6 +17,7 @@ import PlayIcon from "@material-ui/icons/PlayArrow";
 
 import CreateEventModal from "components/modals/CreateEvent";
 import EditEventModal from "components/modals/EditEvent";
+import StartMeetingModal from "components/modals/StartMeeting";
 
 import {
   getAllMeetingEvents,
@@ -50,7 +51,9 @@ const Home = ({ classes }) => {
   const [participants, setParticipants] = useState([]);
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openJoin, setOpenJoin] = useState(false);
   const [editIndex, setEditIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(0);
 
   const getAllEvents = async () => {
     try {
@@ -119,7 +122,12 @@ const Home = ({ classes }) => {
             {events.map((event, idx) => (
               <TableRow key={`body-row-${idx}`}>
                 <TableCell>
-                  <IconButton onClick={() => {}}>
+                  <IconButton
+                    onClick={() => {
+                      setOpenIndex(idx);
+                      setOpenJoin(true);
+                    }}
+                  >
                     <PlayIcon />
                   </IconButton>
                 </TableCell>
@@ -177,6 +185,13 @@ const Home = ({ classes }) => {
               console.log("error", error);
             }
           }}
+        />
+      )}
+      {openJoin && (
+        <StartMeetingModal
+          open={openJoin}
+          event={events[openIndex]}
+          handleClose={() => setOpenJoin(false)}
         />
       )}
     </Box>
