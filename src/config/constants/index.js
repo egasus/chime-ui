@@ -14,3 +14,22 @@ export const CHIME_REGIONS = [
   { label: "Europe (Stockholm)", value: "eu-north-1" },
   { label: "South America (São Paulo)", value: "sa-east-1" },
 ];
+
+export const MOCK_USERS = [
+  "test1@gmail.com",
+  "test2@gmail.com",
+  "test3@gmail.com",
+  "test4@gmail.com",
+  "test5@gmail.com",
+  "test6@gmail.com",
+  "test7@gmail.com",
+  "test8@gmail.com",
+  "test9@gmail.com",
+];
+
+export const MEETING_STATUS = [
+  { number: 0, label: "PENDING" },
+  { number: 1, label: "ACTIVE" },
+  { number: 2, label: "COMPLETED" },
+  { number: 3, label: "CANCELED" },
+];

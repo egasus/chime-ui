@@ -13,6 +13,8 @@ import Typography from "@material-ui/core/Typography";
 
 import MultiSelect from "components/MultiSelect";
 
+import { MOCK_USERS } from "config/constants";
+
 const muiStyles = () => ({
   paper: {
     width: "75%",
@@ -38,6 +40,10 @@ const CreateEvent = ({
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [participants, setParticipants] = useState([]);
+  const participantItems = allParticipants
+    .map(({ email }) => email)
+    .concat(MOCK_USERS)
+    .filter((i) => i !== localStorage.getItem("email"));
   return (
     <Dialog
       open={open}
@@ -79,7 +85,7 @@ const CreateEvent = ({
             </Typography>
             <MultiSelect
               required
-              items={allParticipants.map(({ email }) => email)}
+              items={participantItems}
               currentValues={participants}
               handleChange={(value) => setParticipants(value)}
             />
@@ -124,6 +130,8 @@ const CreateEvent = ({
                     ch_scheduled_start_date_time: startDate,
                     ch_scheduled_end_date_time: endDate,
                     ch_participants: participants,
+                    ch_instructor:
+                      localStorage.getItem("email") || "test1@gmail.com",
                   })
                 );
                 // setEvent({});

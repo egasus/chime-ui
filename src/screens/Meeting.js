@@ -11,6 +11,8 @@ import MeetingManager from "services/MeetingManager";
 // import Controller from "controller/views/Controller";
 import ControllBar from "./components/MeetingNavbar";
 
+import { getMeetingEvent, updateMeetingStatus } from "apis";
+
 const muiStyles = () => ({
   connectingDiv: {
     height: "75vh",
@@ -23,9 +25,9 @@ const muiStyles = () => ({
   },
 });
 
-const title = "title-333";
-const name = "Johnsmith";
-// const name = localStorage.getItem("email") || "johnsmith@gmail.com";
+// const title = "title-333";
+// const name = "Johnsmith";
+const name = localStorage.getItem("email");
 const region = "us-east-1";
 
 class Meeting extends Component {
@@ -37,19 +39,27 @@ class Meeting extends Component {
       isMute: false,
       isVideo: true,
       isShare: false,
+      event: null,
+      title: props.match.params.id,
     };
   }
 
   async componentDidMount() {
+    const { title } = this.state;
+    const event = await getMeetingEvent(title);
     await MeetingManager.joinMeeting(title, name, region);
-    this.setState({ loading: false });
+    this.setState({ loading: false, event: event.data }, () => {
+      if (event.data.ch_instructor === name) {
+        updateMeetingStatus(title, { ch_meeting_status: 1 });
+      }
+    });
   }
 
   render() {
     const { classes } = this.props;
-    const { loading } = this.state;
+    const { loading, event, title } = this.state;
     // const id = this.props.match.params.id;
-    const isInstructor = false;
+    const isInstructor = event && event && event.ch_instructor === name;
 
     return (
       <div>
@@ -58,10 +68,11 @@ class Meeting extends Component {
           isVideo={this.state.isVideo}
           isShare={this.state.isShare}
           setEnd={() => {
-            if (isInstructor || false) {
+            if (isInstructor) {
               MeetingManager.endMeeting(title);
+              updateMeetingStatus(title, { ch_meeting_status: 2 });
             } else {
-              MeetingManager.leaveMeeting(title);
+              MeetingManager.leaveMeeting(this.state.title);
             }
           }}
           setIsMute={() => this.setState(({ isMute }) => ({ isMute: !isMute }))}

@@ -16,6 +16,12 @@ export function getAllUsers() {
 export function getAllMeetingEvents() {
   return get("/api/events");
 }
+export function getMeetingEvent(id) {
+  return get(`/api/events/${id}`);
+}
+export function updateMeetingStatus(id, obj) {
+  return put(`/api/events/status/${id}`, obj);
+}
 export function createMeetingEvent(obj) {
   return post("/api/events", obj);
 }

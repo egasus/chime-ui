@@ -41,36 +41,50 @@ class StartMeeting extends Component {
     };
   }
 
+  isInstructor = (email) => email === localStorage.getItem("email");
+
   render() {
     const { open, event, classes, handleClose } = this.props;
     const { region } = this.state;
+    const isToShow = this.isInstructor(event.ch_instructor);
     return (
       <Dialog
         open={open}
         onClose={handleClose}
         classes={{ paper: classes.paper }}
       >
-        <DialogTitle>Start a meeting</DialogTitle>
+        <DialogTitle>
+          {isToShow ? "Start a meeting" : "Join meeting"}
+        </DialogTitle>
         <DialogContent>
           <Grid container direction="column">
-            <Grid item xs={12}>
-              <Typography color="primary">Select Meeting Regions *</Typography>
-              <TextField
-                required
-                value={region}
-                select
-                onChange={({ target: { value } }) =>
-                  this.setState({ region: value })
-                }
-                fullWidth
-              >
-                {CHIME_REGIONS.map(({ label, value }, idx) => (
-                  <MenuItem key={`region-${idx}`} value={value}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+            {isToShow && (
+              <Grid item xs={12}>
+                <Typography color="primary">
+                  Select Meeting Regions *
+                </Typography>
+                <TextField
+                  required
+                  value={region}
+                  select
+                  onChange={({ target: { value } }) =>
+                    this.setState({ region: value })
+                  }
+                  fullWidth
+                >
+                  {CHIME_REGIONS.map(({ label, value }, idx) => (
+                    <MenuItem key={`region-${idx}`} value={value}>
+                      {label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+            )}
+            {!isToShow && Number(event.ch_meeting_status) !== 1 && (
+              <Typography color="primary">
+                This meeting is not available (not started or canceled)
+              </Typography>
+            )}
             <br />
           </Grid>
           <br />
@@ -106,11 +120,14 @@ class StartMeeting extends Component {
                 variant="contained"
                 onClick={() => {
                   handleClose();
-                  window.open(`/meeting/:${event.id || "abewfwefwefe"}`);
+                  window.open(`/meeting/${event.ch_event_uuid}`);
                 }}
-                disabled={!region}
+                disabled={
+                  (isToShow && !region) ||
+                  (!isToShow && Number(event.ch_meeting_status) !== 1)
+                }
               >
-                START
+                {isToShow ? "START" : "JOIN"}
               </Button>
             </Grid>
           </Grid>

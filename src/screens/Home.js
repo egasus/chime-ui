@@ -27,8 +27,10 @@ import {
   updateMeetingEvent,
 } from "apis";
 
+import { MEETING_STATUS } from "config/constants";
+
 const TITLES = [
-  // { title: "Instructor", key: "ch_instructor" },
+  { title: "Instructor", key: "ch_instructor" },
   { title: "Scheduled Start", key: "ch_scheduled_start_date_time" },
   { title: "Scheduled End", key: "ch_scheduled_end_date_time" },
   { title: "Status", key: "ch_meeting_status" },
@@ -81,9 +83,9 @@ const Home = ({ classes }) => {
       console.log("error", error);
     }
   };
-  const updateEvent = async (obj) => {
+  const updateEvent = async (uuid, obj) => {
     try {
-      const res = await updateMeetingEvent(obj._id, obj);
+      const res = await updateMeetingEvent(uuid, obj);
       if (res.status) {
         getAllEvents();
       }
@@ -96,6 +98,13 @@ const Home = ({ classes }) => {
     getAllEvents();
     getAllParticipants();
   }, []);
+
+  const isInstructor = (email) => email === localStorage.getItem("email");
+  const getStatusLabel = (statusNumber) => {
+    return MEETING_STATUS.find(
+      ({ number }) => Number(statusNumber || 0) === Number(number)
+    ).label;
+  };
 
   return (
     <Box py={8}>
@@ -132,10 +141,15 @@ const Home = ({ classes }) => {
                   </IconButton>
                 </TableCell>
                 {TITLES.map(({ key }, rIdx) => (
-                  <TableCell key={`row-cell-${rIdx}`}>{event[key]}</TableCell>
+                  <TableCell key={`row-cell-${rIdx}`}>
+                    {key !== "ch_meeting_status"
+                      ? event[key]
+                      : getStatusLabel(event[key])}
+                  </TableCell>
                 ))}
                 <TableCell className={classes.actionIcons}>
                   <IconButton
+                    disabled={!isInstructor(event.ch_instructor)}
                     onClick={() => {
                       setEditIndex(idx);
                       setOpenEdit(true);
@@ -143,7 +157,10 @@ const Home = ({ classes }) => {
                   >
                     <EditIcon />
                   </IconButton>
-                  <IconButton onClick={() => delEvent(events[idx]._id)}>
+                  <IconButton
+                    disabled={!isInstructor(event.ch_instructor)}
+                    onClick={() => delEvent(events[idx].ch_event_uuid)}
+                  >
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -175,9 +192,9 @@ const Home = ({ classes }) => {
           event={events[editIndex]}
           participants={participants}
           handleClose={() => setOpenEdit(false)}
-          onSave={async (event) => {
+          onSave={async (uuid, event) => {
             try {
-              const res = await updateEvent(event);
+              const res = await updateEvent(uuid, event);
               if (res) {
                 getAllEvents();
               }

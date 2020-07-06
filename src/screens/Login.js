@@ -17,6 +17,8 @@ import Typography from "@material-ui/core/Typography";
 import bgImage from "assets/img/sidebar_cash.jpg";
 import { withRouter } from "react-router";
 
+import { MOCK_USERS } from "config/constants";
+
 const muiStyles = (theme) => ({
   root: {
     height: "100vh",
@@ -64,9 +66,9 @@ const Login = ({ classes, history }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (email === "johnsmith@gmail.com" && password === "pass123") {
+    if (MOCK_USERS.includes(email) && password === "pass123") {
       localStorage.setItem("token", "aaaa");
-      localStorage.setItem("email", "johnsmith@gmail.com");
+      localStorage.setItem("email", email);
       history.push("/");
     }
   };
