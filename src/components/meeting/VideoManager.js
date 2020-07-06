@@ -1,11 +1,13 @@
 import React, { useReducer, useEffect } from "react";
 
+import Grid from "@material-ui/core/Grid";
+
 import VideoGrid from "./VideoGrid";
 import VideoTile from "./VideoTitle";
 import { Type as actionType } from "./RoomProvider/reducer";
 import {
   useRoomProviderDispatch,
-  useRoomProviderState,
+  // useRoomProviderState,
 } from "./RoomProvider/index";
 
 function reducer(state, { type, payload }) {
@@ -36,14 +38,11 @@ export const screenViewDiv = () =>
 
 const VideoManager = ({ MeetingManager }) => {
   const roomProviderDispatch = useRoomProviderDispatch();
-  const context = useRoomProviderState();
-  console.log("context", context);
-  const isViewingSharedScreen = true;
+  // const context = useRoomProviderState();
+  // const isViewingSharedScreen = true;
   const [state, dispatch] = useReducer(reducer, {});
-  console.log("state--------------------->", state);
 
   const videoTileDidUpdate = (tileState) => {
-    console.log("tileState------------------>", tileState);
     console.log(tileState.isContent);
     dispatch({ type: "TILE_UPDATED", payload: tileState });
   };
@@ -56,7 +55,6 @@ const VideoManager = ({ MeetingManager }) => {
     document.getElementById("share-content-view-nameplate");
 
   const streamDidStart = (screenMessageDetail) => {
-    console.log("tile updated------------------>");
     // MeetingManager.getAttendee(screenMessageDetail.attendeeId).then((name) => {
     //   nameplateDiv().innerHTML = name;
     // });
@@ -91,23 +89,33 @@ const VideoManager = ({ MeetingManager }) => {
     };
   }, []);
 
-  console.log("isViewingSharedScreen----->", isViewingSharedScreen);
-  useEffect(() => {
-    screenViewDiv().style.display = isViewingSharedScreen ? "grid" : "none";
-  }, [isViewingSharedScreen]);
+  // useEffect(() => {
+  //   screenViewDiv().style.display = isViewingSharedScreen ? "grid" : "none";
+  // }, [isViewingSharedScreen]);
 
-  const videos = Object.keys(state).map((tileId) => (
-    <VideoTile
-      key={tileId}
-      nameplate="Attendee ID"
-      isLocal={state[tileId].localTile}
-      bindVideoTile={(videoRef) =>
-        MeetingManager.bindVideoTile(parseInt(tileId), videoRef)
-      }
-    />
-  ));
-  console.log("videos", videos);
-  console.log("state", state);
+  const videos = Object.keys(state).map((tileId, idx) =>
+    state[tileId].localTile ? (
+      <VideoTile
+        key={tileId}
+        nameplate="Attendee ID"
+        isLocal={true}
+        bindVideoTile={(videoRef) =>
+          MeetingManager.bindVideoTile(parseInt(tileId), videoRef)
+        }
+      />
+    ) : (
+      <Grid item xs={3} key={`video-tile-${idx}`}>
+        <VideoTile
+          key={tileId}
+          nameplate="Attendee ID"
+          isLocal={false}
+          bindVideoTile={(videoRef) =>
+            MeetingManager.bindVideoTile(parseInt(tileId), videoRef)
+          }
+        />
+      </Grid>
+    )
+  );
 
   return <VideoGrid size={videos.length}>{videos}</VideoGrid>;
 };

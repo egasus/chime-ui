@@ -45,7 +45,6 @@ class MeetingManager {
       deviceController
     );
     this.audioVideo = this.meetingSession.audioVideo;
-    console.log("this.audioVideo------->", this.audioVideo);
     // TODO: Update ScreenShareView to use new introduced content-based screen sharing.
     this.screenShareView = this.meetingSession.screenShareView;
 
