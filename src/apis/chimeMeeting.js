@@ -1,9 +1,19 @@
 import * as queryString from "query-string";
 import axios from "axios";
+const isDev = process.env.NODE_ENV !== "production";
 
 // const baseUrl = "https://7jswahvsga.execute-api.us-east-1.amazonaws.com/Prod";
 // const baseUrl = "https://7jswahvsga.execute-api.us-east-1.amazonaws.com/Prod";
-const baseUrl = "https://abfa1pspvg.execute-api.us-east-1.amazonaws.com/Prod";
+// const baseUrl = "https://abfa1pspvg.execute-api.us-east-1.amazonaws.com/Prod";
+// const baseUrl = "https://ghmwhv8jyf.execute-api.us-east-1.amazonaws.com/Prod";
+// const baseUrl = "https://ac6y1jiqre.execute-api.us-east-1.amazonaws.com/Prod";
+
+let baseUrl;
+if (isDev) {
+  baseUrl = "http://localhost:8080";
+} else {
+  baseUrl = "https://selfiepop-api.herokuapp.com";
+}
 
 async function request(path, config) {
   return axios({
@@ -27,9 +37,9 @@ export function createMeeting(title, name, region) {
     params = `${params}&region=${region}`;
   }
 
-  return post(`/join${params}`);
+  return post(`/api/meeting/join${params}`);
 }
 
 export function endMeeting(title) {
-  return post(`/end?title=${title}`);
+  return post(`/api/meeting/end?title=${title}`);
 }
