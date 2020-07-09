@@ -15,10 +15,10 @@ const muiStyles = () => ({
 const VideoGrid = ({ children, size, classes }) => {
   return (
     <>
-      {/* <div id="shared-content-view" className="screenview unselectable">
+      <div id="shared-content-view" className="screenview unselectable">
         <div id="share-content-view-nameplate">No one is sharing screen</div>
-      </div> */}
-      {/* <div className={`VideoGrid ${`VideoGrid--size-${size}`}`}>{children}</div> */}
+      </div>
+      <div className={`VideoGrid ${`VideoGrid--size-${size}`}`}>{children}</div>
       <Grid
         container
         justify="space-between"

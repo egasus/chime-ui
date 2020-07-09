@@ -1,12 +1,13 @@
 import * as queryString from "query-string";
 import axios from "axios";
+import { get } from "./apiCore";
 const isDev = process.env.NODE_ENV !== "production";
 
 // const baseUrl = "https://7jswahvsga.execute-api.us-east-1.amazonaws.com/Prod";
 // const baseUrl = "https://7jswahvsga.execute-api.us-east-1.amazonaws.com/Prod";
 // const baseUrl = "https://abfa1pspvg.execute-api.us-east-1.amazonaws.com/Prod";
 // const baseUrl = "https://ghmwhv8jyf.execute-api.us-east-1.amazonaws.com/Prod";
-// const baseUrl = "https://ac6y1jiqre.execute-api.us-east-1.amazonaws.com/Prod";
+// const baseUrl = "https://k2rjhzwum7.execute-api.us-east-1.amazonaws.com/Prod";
 
 let baseUrl;
 if (isDev) {
@@ -42,4 +43,8 @@ export function createMeeting(title, name, region) {
 
 export function endMeeting(title) {
   return post(`/api/meeting/end?title=${title}`);
+}
+
+export function getAttendee(title, attendeeId) {
+  return get(`/api/meeting/attendee?title=${title}&attendee=${attendeeId}`);
 }

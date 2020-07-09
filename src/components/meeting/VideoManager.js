@@ -4,11 +4,6 @@ import Grid from "@material-ui/core/Grid";
 
 import VideoGrid from "./VideoGrid";
 import VideoTile from "./VideoTitle";
-import { Type as actionType } from "./RoomProvider/reducer";
-import {
-  useRoomProviderDispatch,
-  // useRoomProviderState,
-} from "./RoomProvider/index";
 
 function reducer(state, { type, payload }) {
   switch (type) {
@@ -36,10 +31,7 @@ function reducer(state, { type, payload }) {
 export const screenViewDiv = () =>
   document.getElementById("shared-content-view");
 
-const VideoManager = ({ MeetingManager }) => {
-  const roomProviderDispatch = useRoomProviderDispatch();
-  // const context = useRoomProviderState();
-  // const isViewingSharedScreen = true;
+const VideoManager = ({ MeetingManager, isScreenShare }) => {
   const [state, dispatch] = useReducer(reducer, {});
 
   const videoTileDidUpdate = (tileState) => {
@@ -55,24 +47,15 @@ const VideoManager = ({ MeetingManager }) => {
     document.getElementById("share-content-view-nameplate");
 
   const streamDidStart = (screenMessageDetail) => {
-    // MeetingManager.getAttendee(screenMessageDetail.attendeeId).then((name) => {
-    //   nameplateDiv().innerHTML = name;
-    // });
+    console.log("screenMessageDetail", screenMessageDetail);
+    MeetingManager.getAttendee(screenMessageDetail.attendeeId).then((name) => {
+      nameplateDiv().innerHTML = name;
+    });
     nameplateDiv().innerHTML = screenMessageDetail.attendeeId;
-    const deviceMessage = {
-      type: actionType.StartScreenShareView,
-    };
-
-    roomProviderDispatch(deviceMessage);
   };
 
   const streamDidStop = (screenMesssageDetail) => {
     nameplateDiv().innerHTML = "No one is sharing screen";
-    const deviceMessage = {
-      type: actionType.StopScreenShareView,
-    };
-
-    roomProviderDispatch(deviceMessage);
   };
 
   const videoObservers = { videoTileDidUpdate, videoTileWasRemoved };
@@ -80,7 +63,7 @@ const VideoManager = ({ MeetingManager }) => {
 
   useEffect(() => {
     MeetingManager.addAudioVideoObserver(videoObservers);
-    MeetingManager.registerScreenShareObservers(screenShareObservers);
+    MeetingManager.registerScreenShareObservers(screenShareObservers); // share screen
     MeetingManager.startLocalVideo();
 
     return () => {
@@ -89,9 +72,11 @@ const VideoManager = ({ MeetingManager }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   screenViewDiv().style.display = isViewingSharedScreen ? "grid" : "none";
-  // }, [isViewingSharedScreen]);
+  useEffect(() => {
+    if (screenViewDiv()) {
+      screenViewDiv().style.display = isScreenShare ? "grid" : "none";
+    }
+  }, [isScreenShare]);
 
   const videos = Object.keys(state).map((tileId, idx) =>
     state[tileId].localTile ? (

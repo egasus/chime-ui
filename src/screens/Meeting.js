@@ -11,6 +11,7 @@ import MeetingManager from "services/MeetingManager";
 // import Controller from "controller/views/Controller";
 import ControllBar from "./components/MeetingNavbar";
 
+import { screenViewDiv } from "components/meeting/VideoManager";
 import { getMeetingEvent, updateMeetingStatus } from "apis";
 
 const muiStyles = () => ({
@@ -79,9 +80,16 @@ class Meeting extends Component {
           setIsVideo={() =>
             this.setState(({ isVideo }) => ({ isVideo: !isVideo }))
           }
-          setIsShare={() =>
-            this.setState(({ isShare }) => ({ isShare: !isShare }))
-          }
+          setIsShare={() => {
+            const { isShare } = this.state;
+            this.setState({ isShare: !isShare });
+            if (isShare) {
+              // prev state
+              MeetingManager.stopViewingScreenShare();
+            } else {
+              MeetingManager.startViewingScreenShare(screenViewDiv());
+            }
+          }}
         />
         {loading && (
           <div className={classes.connectingDiv}>
@@ -99,7 +107,10 @@ class Meeting extends Component {
         {!loading && (
           <>
             <MeetingAudio MeetingManager={MeetingManager} />
-            <VideoManager MeetingManager={MeetingManager} />
+            <VideoManager
+              MeetingManager={MeetingManager}
+              isScreenShare={this.state.isShare}
+            />
           </>
         )}
       </div>

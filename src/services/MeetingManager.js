@@ -1,16 +1,20 @@
 import {
-  AudioVideoFacade,
-  AudioVideoObserver,
+  // AudioVideoFacade,
+  // AudioVideoObserver,
   ConsoleLogger,
   DefaultDeviceController,
   DefaultMeetingSession,
   LogLevel,
   MeetingSessionConfiguration,
-  ScreenShareViewFacade,
-  ScreenObserver,
+  // ScreenShareViewFacade,
+  // ScreenObserver,
 } from "amazon-chime-sdk-js";
 
-import { createMeeting, endMeeting as endMeetingApi } from "apis/chimeMeeting";
+import {
+  createMeeting,
+  endMeeting as endMeetingApi,
+  getAttendee as getAttendeeApi,
+} from "apis/chimeMeeting";
 
 const MeetingView = {
   REGULAR: "regular",
@@ -18,12 +22,6 @@ const MeetingView = {
   SCREEN_SHARE: "screen_share",
   DIRECT_CALL: "direct_call",
 };
-const BASE_URL = [
-  window.location.protocol,
-  "//",
-  window.location.host,
-  window.location.pathname.replace(/\/*$/, "/"),
-].join("");
 
 class MeetingManager {
   constructor() {
@@ -33,6 +31,7 @@ class MeetingManager {
     this.title = "";
     this.videoInputs = null;
     this.selectedVideoInput = null;
+    this.isViewingSharedScreen = false;
   }
 
   async initializeMeetingSession(configuration) {
@@ -173,9 +172,10 @@ class MeetingManager {
 
     this.setupScreenViewing();
     this.audioVideo.addObserver(this);
-    this.audioVideo.start();
     await this.meetingSession.screenShare.open().then();
     await this.meetingSession.screenShareView.open().then();
+
+    this.audioVideo.start();
   }
 
   async endMeeting(title) {
@@ -190,13 +190,9 @@ class MeetingManager {
   }
 
   async getAttendee(attendeeId) {
-    const response = await fetch(
-      `${BASE_URL}attendee?title=${encodeURIComponent(
-        this.title
-      )}&attendee=${encodeURIComponent(attendeeId)}`
-    );
-    const json = await response.json();
-    return json.AttendeeInfo.Name;
+    const response = await getAttendeeApi(this.title, attendeeId);
+    console.log("response------attendee", response);
+    return response.AttendeeInfo.Name;
   }
 
   bindAudioElement(ref) {

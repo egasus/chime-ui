@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import * as queryString from "query-string";
 
 import { withStyles } from "@material-ui/core/styles";
 import Dialog from "@material-ui/core/Dialog";
@@ -14,12 +13,6 @@ import Typography from "@material-ui/core/Typography";
 import MenuItem from "@material-ui/core/MenuItem";
 
 import { CHIME_REGIONS } from "config/constants";
-
-const parameters = queryString.parse(window.location.search);
-export const baseUrl =
-  parameters.api_url ||
-  process.env.REACT_APP_API_URL ||
-  "http://localhost:8080";
 
 const muiStyles = () => ({
   paper: {
