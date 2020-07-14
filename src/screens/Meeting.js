@@ -11,7 +11,6 @@ import MeetingManager from "services/MeetingManager";
 // import Controller from "controller/views/Controller";
 import ControllBar from "./components/MeetingNavbar";
 
-import { screenViewDiv } from "components/meeting/VideoManager";
 import { getMeetingEvent, updateMeetingStatus } from "apis";
 
 const muiStyles = () => ({
@@ -38,7 +37,7 @@ class Meeting extends Component {
     this.state = {
       loading: true,
       isMute: false,
-      isVideo: true,
+      isVideo: false,
       isShare: false,
       event: null,
       title: props.match.params.id,
@@ -76,18 +75,30 @@ class Meeting extends Component {
               MeetingManager.leaveMeeting(this.state.title);
             }
           }}
-          setIsMute={() => this.setState(({ isMute }) => ({ isMute: !isMute }))}
-          setIsVideo={() =>
-            this.setState(({ isVideo }) => ({ isVideo: !isVideo }))
-          }
+          setIsMute={() => {
+            if (this.state.isMute) {
+              this.setState({ isMute: false }, () =>
+                MeetingManager.audioVideo.realtimeUnmuteLocalAudio()
+              );
+            } else {
+              this.setState({ isMute: true }, () =>
+                MeetingManager.audioVideo.realtimeMuteLocalAudio()
+              );
+            }
+          }}
+          setIsVideo={() => {
+            if (this.state.isVideo) {
+              MeetingManager.stopLocalVideo();
+            }
+            this.setState({ isVideo: !this.state.isVideo });
+          }}
           setIsShare={() => {
             const { isShare } = this.state;
             this.setState({ isShare: !isShare });
             if (isShare) {
-              // prev state
-              MeetingManager.stopViewingScreenShare();
+              MeetingManager.meetingSession.screenShare.stop();
             } else {
-              MeetingManager.startViewingScreenShare(screenViewDiv());
+              MeetingManager.meetingSession.screenShare.start().then();
             }
           }}
         />
@@ -110,6 +121,8 @@ class Meeting extends Component {
             <VideoManager
               MeetingManager={MeetingManager}
               isScreenShare={this.state.isShare}
+              handleScreenShareStoping={() => this.setState({ isShare: false })}
+              isVideo={this.state.isVideo}
             />
           </>
         )}

@@ -16,12 +16,12 @@ import {
   getAttendee as getAttendeeApi,
 } from "apis/chimeMeeting";
 
-const MeetingView = {
-  REGULAR: "regular",
-  GALLERY: "gallery",
-  SCREEN_SHARE: "screen_share",
-  DIRECT_CALL: "direct_call",
-};
+// const MeetingView = {
+//   REGULAR: "regular",
+//   GALLERY: "gallery",
+//   SCREEN_SHARE: "screen_share",
+//   DIRECT_CALL: "direct_call",
+// };
 
 class MeetingManager {
   constructor() {
@@ -101,12 +101,16 @@ class MeetingManager {
   async startLocalVideo() {
     const videoInput = await this.audioVideo.listVideoInputDevices();
     const defaultVideo = videoInput[0];
-    await this.audioVideo.chooseVideoInputDevice(defaultVideo);
-    this.audioVideo.startLocalVideoTile();
+    if (defaultVideo) {
+      await this.audioVideo.chooseVideoInputDevice(defaultVideo);
+      this.audioVideo.startLocalVideoTile();
+    }
   }
 
   stopLocalVideo() {
-    this.audioVideo.stopLocalVideoTile();
+    if (this.videoInputs && this.videoInputs.length > 0) {
+      this.audioVideo.stopLocalVideoTile();
+    }
   }
 
   async startViewingScreenShare(screenViewElement) {
@@ -130,33 +134,6 @@ class MeetingManager {
     });
   }
 
-  /**
-   * Setup screen viewing
-   */
-  setupScreenViewing() {
-    const self = this;
-    this.meetingSession.screenShareView.registerObserver({
-      streamDidStart(screenMessageDetail) {
-        console.log("STREAM DID START", screenMessageDetail);
-        self.screenSharing = true;
-        self.changeView(MeetingView.SCREEN_SHARE);
-        setTimeout(() => {
-          self.screenSharingAttendeeId = screenMessageDetail.attendeeId;
-          self.meetingSession.screenShareView.start(
-            self.screenSharingElem.nativeElement
-          );
-        }, 3000);
-      },
-      streamDidStop(screenMessageDetail) {
-        console.log("STREAM DID STOP", screenMessageDetail);
-        self.screenSharing = false;
-        self.screenSharingAttendeeId = null;
-        self.changeView(self.defaultView);
-        self.meetingSession.screenShareView.stop();
-      },
-    });
-  }
-
   async joinMeeting(title, name, region) {
     const res = await createMeeting(title, name, region);
     console.log("res", res);
@@ -170,7 +147,6 @@ class MeetingManager {
     this.audioVideo.addDeviceChangeObserver(this);
     this.fetchAndSetupCameraDevices();
 
-    this.setupScreenViewing();
     this.audioVideo.addObserver(this);
     await this.meetingSession.screenShare.open().then();
     await this.meetingSession.screenShareView.open().then();
@@ -191,7 +167,6 @@ class MeetingManager {
 
   async getAttendee(attendeeId) {
     const response = await getAttendeeApi(this.title, attendeeId);
-    console.log("response------attendee", response);
     return response.AttendeeInfo.Name;
   }
 
