@@ -6,21 +6,21 @@ import { withStyles } from "@material-ui/core/styles";
 const muiStyles = (theme) => ({
   videoTile: {
     width: "100%",
-    backgroundColor: "blue",
     borderRadius: 10,
+    border: "1px solid #ccc",
   },
 });
 
 const VideoTile = ({ bindVideoTile, nameplate, isLocal, classes }) => {
   const videoRef = useRef(null);
 
-  // useEffect(() => {
-  //   if (!videoRef.current) {
-  //     return;
-  //   }
+  useEffect(() => {
+    if (!videoRef.current) {
+      return;
+    }
 
-  //   bindVideoTile(videoRef.current);
-  // }, [videoRef, bindVideoTile]);
+    bindVideoTile(videoRef.current);
+  }, [videoRef, bindVideoTile]);
 
   return <video className={classes.videoTile} ref={videoRef} />;
 };
