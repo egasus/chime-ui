@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Grid from "@material-ui/core/Grid";
 
 import MeetingAudio from "components/meeting/MeetingAudio";
 import VideoManager from "components/meeting/VideoManager";
@@ -22,6 +23,18 @@ const muiStyles = () => ({
   },
   connectingTypo: {
     paddingRight: 20,
+  },
+  layoutGrid: {
+    height: "calc(100vh - 80px)",
+    padding: 16,
+  },
+  msgGrid: {
+    border: "1px solid #ccc",
+    height: "100%",
+  },
+  videoGrid: {
+    paddingLeft: 16,
+    height: "100%",
   },
 });
 
@@ -62,7 +75,7 @@ class Meeting extends Component {
     const isInstructor = event && event && event.ch_instructor === name;
 
     return (
-      <div>
+      <React.Fragment>
         <ControllBar
           isMute={this.state.isMute}
           isVideo={this.state.isVideo}
@@ -116,17 +129,29 @@ class Meeting extends Component {
         )}
 
         {!loading && (
-          <>
-            <MeetingAudio MeetingManager={MeetingManager} />
-            <VideoManager
-              MeetingManager={MeetingManager}
-              isScreenShare={this.state.isShare}
-              handleScreenShareStoping={() => this.setState({ isShare: false })}
-              isVideo={this.state.isVideo}
-            />
-          </>
+          <Grid
+            container
+            justify="flex-start"
+            alignItems="flex-start"
+            className={classes.layoutGrid}
+          >
+            <Grid item lg={3} xs={0} className={classes.msgGrid}>
+              <Typography>Message All</Typography>
+            </Grid>
+            <Grid item lg={9} xs={12} className={classes.videoGrid}>
+              <MeetingAudio MeetingManager={MeetingManager} />
+              <VideoManager
+                MeetingManager={MeetingManager}
+                isScreenShare={this.state.isShare}
+                handleScreenShareStoping={() =>
+                  this.setState({ isShare: false })
+                }
+                isVideo={this.state.isVideo}
+              />
+            </Grid>
+          </Grid>
         )}
-      </div>
+      </React.Fragment>
     );
   }
 }

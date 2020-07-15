@@ -1,18 +1,34 @@
 import React, { useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 
-const VideoTile = ({ bindVideoTile, nameplate, isLocal }) => {
+import { withStyles } from "@material-ui/core/styles";
+
+const muiStyles = (theme) => ({
+  videoTile: {
+    width: "100%",
+    backgroundColor: "blue",
+    borderRadius: 10,
+  },
+});
+
+const VideoTile = ({ bindVideoTile, nameplate, isLocal, classes }) => {
   const videoRef = useRef(null);
 
-  useEffect(() => {
-    if (!videoRef.current) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!videoRef.current) {
+  //     return;
+  //   }
 
-    bindVideoTile(videoRef.current);
-  }, [videoRef, bindVideoTile]);
+  //   bindVideoTile(videoRef.current);
+  // }, [videoRef, bindVideoTile]);
 
-  const classes = `VideoTile ${isLocal ? "VideoTile--local" : ""}`;
-  return <video className={classes} ref={videoRef} />;
+  return <video className={classes.videoTile} ref={videoRef} />;
 };
 
-export default VideoTile;
+VideoTile.propTypes = {
+  // bindVideoTile: PropTypes.func.isRequired,
+  isLocal: PropTypes.bool.isRequired,
+  classes: PropTypes.object.isRequired,
+};
+
+export default withStyles(muiStyles)(VideoTile);

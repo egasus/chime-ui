@@ -24,18 +24,16 @@ const PrivateRoute = ({ component: Component, ...Rest }) => (
 
 function App() {
   return (
-    <div>
-      <Router history={history}>
-        <Navbar />
-        <Switch>
-          <Route path="/meeting/:id" component={Meeting} />
-          <Route path="/meeting" component={Home} />
-          <Route path="/login" component={Login} />
-          <PrivateRoute exact path="/dashboard" component={Home} />
-          <Redirect from="/" to="/dashboard" />
-        </Switch>
-      </Router>
-    </div>
+    <Router history={history}>
+      <Navbar />
+      <Switch>
+        <Route path="/meeting/:id" component={Meeting} />
+        <Route path="/meeting" component={Home} />
+        <Route path="/login" component={Login} />
+        <PrivateRoute exact path="/dashboard" component={Home} />
+        <Redirect from="/" to="/dashboard" />
+      </Switch>
+    </Router>
   );
 }
 

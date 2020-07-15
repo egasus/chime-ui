@@ -1,9 +1,18 @@
 import React, { useReducer, useEffect } from "react";
 
+import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 
-import VideoGrid from "./VideoGrid";
 import VideoTile from "./VideoTitle";
+
+const muiStyles = (theme) => ({
+  tileGrid: {
+    padding: 10,
+  },
+  screenview: {
+    resize: "both",
+  },
+});
 
 function reducer(state, { type, payload }) {
   switch (type) {
@@ -30,7 +39,8 @@ function reducer(state, { type, payload }) {
 // TODO: Make as component.
 export const screenViewDiv = () =>
   document.getElementById("shared-content-view");
-
+export const nameplateDiv = () =>
+  document.getElementById("share-content-view-nameplate");
 export const getWidthRate = (tileSize) => {
   switch (tileSize) {
     case tileSize < 2:
@@ -40,7 +50,7 @@ export const getWidthRate = (tileSize) => {
     case tileSize < 5:
       return 4;
     default:
-      return 3;
+      return 4;
   }
 };
 
@@ -49,6 +59,7 @@ const VideoManager = ({
   isScreenShare,
   handleScreenShareStoping,
   isVideo,
+  classes,
 }) => {
   const [state, dispatch] = useReducer(reducer, {});
 
@@ -60,9 +71,6 @@ const VideoManager = ({
   const videoTileWasRemoved = (tileId) => {
     dispatch({ type: "TILE_DELETED", payload: tileId });
   };
-
-  const nameplateDiv = () =>
-    document.getElementById("share-content-view-nameplate");
 
   const streamDidStart = (screenMessageDetail) => {
     console.log("screenMessageDetail", screenMessageDetail);
@@ -98,14 +106,29 @@ const VideoManager = ({
 
   useEffect(() => {
     if (screenViewDiv()) {
-      screenViewDiv().style.display = isScreenShare ? "grid" : "none";
+      screenViewDiv().style.height = isScreenShare ? "100%" : "0%";
     }
   }, [isScreenShare]);
 
-  const lgWd = getWidthRate(Object.keys(state).length);
+  // const lgWd = getWidthRate(Object.keys(state).length);
 
-  const videos = Object.keys(state).map((tileId, idx) => (
-    <Grid item lg={lgWd} key={`video-tile-${idx}`}>
+  // const videos = Object.keys(state).map((tileId, idx) => (
+  //   <Grid item lg={lgWd} key={`video-tile-${idx}`}>
+  //     <VideoTile
+  //       key={tileId}
+  //       nameplate="Attendee ID"
+  //       isLocal={false}
+  //       bindVideoTile={(videoRef) =>
+  //         MeetingManager.bindVideoTile(parseInt(tileId), videoRef)
+  //       }
+  //     />
+  //   </Grid>
+  // ));
+
+  const lgWd = getWidthRate(7);
+
+  const videos = [1, 2, 3, 4, 5, 6, 7].map((tileId, idx) => (
+    <Grid item lg={lgWd} key={`video-tile-${idx}`} className={classes.tileGrid}>
       <VideoTile
         key={tileId}
         nameplate="Attendee ID"
@@ -117,7 +140,20 @@ const VideoManager = ({
     </Grid>
   ));
 
-  return <VideoGrid size={videos.length}>{videos}</VideoGrid>;
+  return (
+    <>
+      <div id="shared-content-view" className={classes.screenview}>
+        {isScreenShare && (
+          <div id="share-content-view-nameplate">No one is sharing screen</div>
+        )}
+      </div>
+      {!isScreenShare && (
+        <Grid container justify="flex-start" alignItems="center">
+          {videos}
+        </Grid>
+      )}
+    </>
+  );
 };
 
-export default VideoManager;
+export default withStyles(muiStyles)(VideoManager);
