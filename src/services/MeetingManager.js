@@ -99,10 +99,8 @@ class MeetingManager {
   }
 
   async startLocalVideo() {
-    const videoInput = await this.audioVideo.listVideoInputDevices();
-    const defaultVideo = videoInput[0];
-    if (defaultVideo) {
-      await this.audioVideo.chooseVideoInputDevice(defaultVideo);
+    if (this.selectedVideoInput) {
+      await this.audioVideo.chooseVideoInputDevice(this.selectedVideoInput);
       this.audioVideo.startLocalVideoTile();
     }
   }

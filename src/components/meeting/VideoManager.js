@@ -4,6 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 
 import VideoTile from "./VideoTitle";
+import { Typography } from "@material-ui/core";
 
 const muiStyles = (theme) => ({
   tileGrid: {
@@ -58,7 +59,6 @@ const VideoManager = ({
   MeetingManager,
   isScreenShare,
   handleScreenShareStoping,
-  isVideo,
   classes,
 }) => {
   const [state, dispatch] = useReducer(reducer, {});
@@ -81,7 +81,7 @@ const VideoManager = ({
   };
 
   const streamDidStop = (screenMesssageDetail) => {
-    nameplateDiv().innerHTML = "No one is sharing screen";
+    // nameplateDiv().innerHTML = "No one is sharing screen";
     MeetingManager.stopViewingScreenShare();
     handleScreenShareStoping();
   };
@@ -98,11 +98,6 @@ const VideoManager = ({
       MeetingManager.removeScreenShareObserver(screenShareObservers);
     };
   }, []);
-  useEffect(() => {
-    if (isVideo) {
-      MeetingManager.startLocalVideo();
-    }
-  }, [isVideo]);
 
   useEffect(() => {
     if (screenViewDiv()) {
@@ -110,24 +105,8 @@ const VideoManager = ({
     }
   }, [isScreenShare]);
 
-  // const lgWd = getWidthRate(Object.keys(state).length);
-
-  // const videos = Object.keys(state).map((tileId, idx) => (
-  //   <Grid item lg={lgWd} key={`video-tile-${idx}`}>
-  //     <VideoTile
-  //       key={tileId}
-  //       nameplate="Attendee ID"
-  //       isLocal={false}
-  //       bindVideoTile={(videoRef) =>
-  //         MeetingManager.bindVideoTile(parseInt(tileId), videoRef)
-  //       }
-  //     />
-  //   </Grid>
-  // ));
-
-  const lgWd = getWidthRate(7);
-
-  const videos = [1, 2, 3, 4, 5, 6, 7].map((tileId, idx) => (
+  const lgWd = getWidthRate(Object.keys(state).length);
+  const videos = Object.keys(state).map((tileId, idx) => (
     <Grid item lg={lgWd} key={`video-tile-${idx}`} className={classes.tileGrid}>
       <VideoTile
         key={tileId}
@@ -140,6 +119,8 @@ const VideoManager = ({
     </Grid>
   ));
 
+  const isNoVideo = videos.length < 1;
+
   return (
     <>
       <div id="shared-content-view" className={classes.screenview}>
@@ -148,8 +129,18 @@ const VideoManager = ({
         )}
       </div>
       {!isScreenShare && (
-        <Grid container justify="flex-start" alignItems="center">
-          {videos}
+        <Grid
+          container
+          justify={!isNoVideo ? "flex-start" : "center"}
+          alignItems="center"
+        >
+          {!isNoVideo ? (
+            videos
+          ) : (
+            <Typography align="center">
+              None of the participants have enabled their video camera
+            </Typography>
+          )}
         </Grid>
       )}
     </>

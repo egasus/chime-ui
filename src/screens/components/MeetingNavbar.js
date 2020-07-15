@@ -38,6 +38,7 @@ function ButtonAppBar({
   isMute,
   isVideo,
   isShare,
+  isError,
   setIsVideo,
   setIsMute,
   setIsShare,
@@ -61,19 +62,19 @@ function ButtonAppBar({
               </Typography>
             </Grid>
             <Grid container item xs={6} justify="space-around">
-              <IconButton onClick={setIsMute}>
+              <IconButton disabled={isError} onClick={setIsMute}>
                 {isMute ? <MicOffIcon /> : <MicIcon />}
               </IconButton>
-              <IconButton onClick={setIsVideo}>
+              <IconButton disabled={isError} onClick={setIsVideo}>
                 {isVideo ? <VideocamIcon /> : <VideocamOffIcon />}
               </IconButton>
-              <IconButton onClick={setIsShare}>
+              <IconButton disabled={isError} onClick={setIsShare}>
                 {isShare ? <ScreenShareIcon /> : <ScreenShareOffIcon />}
               </IconButton>
               <IconButton>
                 <MoreHorizIcon />
               </IconButton>
-              <IconButton onClick={setEnd}>
+              <IconButton disabled={isError} onClick={setEnd}>
                 <EndIcon />
               </IconButton>
             </Grid>
@@ -90,6 +91,7 @@ ButtonAppBar.propTypes = {
   isMute: PropTypes.bool.isRequired,
   isVideo: PropTypes.bool.isRequired,
   isShare: PropTypes.bool.isRequired,
+  isError: PropTypes.bool.isRequired,
   setIsVideo: PropTypes.func.isRequired,
   setIsMute: PropTypes.func.isRequired,
   setIsShare: PropTypes.func.isRequired,

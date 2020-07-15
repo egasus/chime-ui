@@ -36,6 +36,12 @@ const muiStyles = () => ({
     paddingLeft: 16,
     height: "100%",
   },
+  errorDiv: {
+    height: "80vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 // const title = "title-333";
@@ -52,15 +58,24 @@ class Meeting extends Component {
       isMute: false,
       isVideo: false,
       isShare: false,
+      isError: false,
       event: null,
       title: props.match.params.id,
     };
+    this.meetingManager = MeetingManager;
   }
 
   async componentDidMount() {
     const { title } = this.state;
     const event = await getMeetingEvent(title);
-    await MeetingManager.joinMeeting(title, name, region);
+    try {
+      await this.meetingManager.joinMeeting(title, name, region);
+    } catch (error) {
+      console.log("error-join", error);
+      this.setState({ loading: false, isError: true });
+      return;
+    }
+
     this.setState({ loading: false, event: event.data }, () => {
       if (event.data.ch_instructor === name) {
         updateMeetingStatus(title, { ch_meeting_status: 1 });
@@ -70,51 +85,76 @@ class Meeting extends Component {
 
   render() {
     const { classes } = this.props;
-    const { loading, event, title } = this.state;
+    const { loading, event, title, isError } = this.state;
     // const id = this.props.match.params.id;
     const isInstructor = event && event && event.ch_instructor === name;
 
     return (
       <React.Fragment>
         <ControllBar
+          isError={isError}
           isMute={this.state.isMute}
           isVideo={this.state.isVideo}
           isShare={this.state.isShare}
           setEnd={() => {
             if (isInstructor) {
-              MeetingManager.endMeeting(title);
+              this.meetingManager.endMeeting(title);
               updateMeetingStatus(title, { ch_meeting_status: 2 });
             } else {
-              MeetingManager.leaveMeeting(this.state.title);
+              this.meetingManager.leaveMeeting(this.state.title);
             }
           }}
           setIsMute={() => {
             if (this.state.isMute) {
               this.setState({ isMute: false }, () =>
-                MeetingManager.audioVideo.realtimeUnmuteLocalAudio()
+                this.meetingManager.audioVideo.realtimeUnmuteLocalAudio()
               );
             } else {
               this.setState({ isMute: true }, () =>
-                MeetingManager.audioVideo.realtimeMuteLocalAudio()
+                this.meetingManager.audioVideo.realtimeMuteLocalAudio()
               );
             }
           }}
           setIsVideo={() => {
-            if (this.state.isVideo) {
-              MeetingManager.stopLocalVideo();
+            // toggle video camera
+            if (
+              !this.meetingManager.videoInputs ||
+              this.meetingManager.videoInputs.length < 1
+            ) {
+              alert("No camera device found. Please connect a camera");
+              return;
             }
-            this.setState({ isVideo: !this.state.isVideo });
+            if (
+              this.meetingManager.videoInputs &&
+              this.meetingManager.videoInputs.length > 0
+            ) {
+              this.setState({ isVideo: !this.state.isVideo }, () => {
+                if (this.state.isVideo) {
+                  this.meetingManager.startLocalVideo();
+                } else {
+                  this.meetingManager.stopLocalVideo();
+                }
+              });
+            }
           }}
           setIsShare={() => {
             const { isShare } = this.state;
             this.setState({ isShare: !isShare });
             if (isShare) {
-              MeetingManager.meetingSession.screenShare.stop();
+              this.meetingManager.meetingSession.screenShare.stop();
             } else {
-              MeetingManager.meetingSession.screenShare.start().then();
+              this.meetingManager.meetingSession.screenShare.start().then();
             }
           }}
         />
+        {isError && (
+          <div className={classes.errorDiv}>
+            <Typography align="center">
+              Oops, Something went wrong! Please try again later or try with new
+              meeting event.
+            </Typography>
+          </div>
+        )}
         {loading && (
           <div className={classes.connectingDiv}>
             <Typography
@@ -128,7 +168,7 @@ class Meeting extends Component {
           </div>
         )}
 
-        {!loading && (
+        {!loading && !isError && (
           <Grid
             container
             justify="flex-start"
@@ -139,14 +179,13 @@ class Meeting extends Component {
               <Typography>Message All</Typography>
             </Grid>
             <Grid item lg={9} xs={12} className={classes.videoGrid}>
-              <MeetingAudio MeetingManager={MeetingManager} />
+              <MeetingAudio MeetingManager={this.meetingManager} />
               <VideoManager
-                MeetingManager={MeetingManager}
+                MeetingManager={this.meetingManager}
                 isScreenShare={this.state.isShare}
                 handleScreenShareStoping={() =>
                   this.setState({ isShare: false })
                 }
-                isVideo={this.state.isVideo}
               />
             </Grid>
           </Grid>
