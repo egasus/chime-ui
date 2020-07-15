@@ -186,6 +186,7 @@ class Meeting extends Component {
                 handleScreenShareStoping={() =>
                   this.setState({ isShare: false })
                 }
+                setIsShare={(tOrF) => this.setState({ isShare: tOrF })}
               />
             </Grid>
           </Grid>

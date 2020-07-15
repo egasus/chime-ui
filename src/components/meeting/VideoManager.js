@@ -43,21 +43,21 @@ export const screenViewDiv = () =>
 export const nameplateDiv = () =>
   document.getElementById("share-content-view-nameplate");
 export const getWidthRate = (tileSize) => {
-  switch (tileSize) {
-    case tileSize < 2:
+  console.log('tileSize', tileSize);
+    if (tileSize < 2) {
       return 12;
-    case tileSize < 3:
+    } else if (tileSize < 5) {
       return 6;
-    case tileSize < 5:
+    } else if (tileSize < 10) {
       return 4;
-    default:
-      return 4;
-  }
+    }
+    return 3;
 };
 
 const VideoManager = ({
   MeetingManager,
   isScreenShare,
+  setIsShare,
   handleScreenShareStoping,
   classes,
 }) => {
@@ -77,7 +77,10 @@ const VideoManager = ({
     MeetingManager.getAttendee(screenMessageDetail.attendeeId).then((name) => {
       nameplateDiv().innerHTML = name;
     });
-    MeetingManager.startViewingScreenShare(screenViewDiv());
+    setIsShare(true);
+    setTimeout(() => {
+      MeetingManager.startViewingScreenShare(screenViewDiv());
+    }, 1000);
   };
 
   const streamDidStop = (screenMesssageDetail) => {
@@ -106,6 +109,7 @@ const VideoManager = ({
   }, [isScreenShare]);
 
   const lgWd = getWidthRate(Object.keys(state).length);
+  console.log('lgWd--->', lgWd);
   const videos = Object.keys(state).map((tileId, idx) => (
     <Grid item lg={lgWd} key={`video-tile-${idx}`} className={classes.tileGrid}>
       <VideoTile
