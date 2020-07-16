@@ -51,7 +51,7 @@ export const getWidthRate = (tileSize) => {
 const VideoManager = ({
   MeetingManager,
   isScreenShare,
-  setIsShare,
+  // setIsShare,
   handleScreenShareStoping,
   classes,
   allTiles,
@@ -59,7 +59,10 @@ const VideoManager = ({
   removeTile,
 }) => {
   const videoTileDidUpdate = async (tileState) => {
-    if (!tileState.boundAttendeeId) {
+    if (
+      !tileState.boundAttendeeId ||
+      (tileState.boundVideoElement && !tileState.boundVideoStream)
+    ) {
       return;
     }
     const attendeeInfo = await getAttendeeApi(
@@ -72,23 +75,28 @@ const VideoManager = ({
       attendeeId: tileState.boundAttendeeId,
       attendeeName: attendeeInfo.Attendee.Name,
     };
+    console.log("videoTileDidUpdate", tileState);
+    console.log("videoTileDidUpdatedetails", details);
     addTile(details);
   };
 
-  const videoTileWasRemoved = (tileId) => {
-    setTimeout(() => {
-      removeTile(tileId);
-    }, 1500);
+  const videoTileWasRemoved = async (tileId) => {
+    console.log("tile -removed");
+    removeTile(tileId);
   };
 
   const streamDidStart = (screenMessageDetail) => {
-    MeetingManager.getAttendee(screenMessageDetail.attendeeId).then((name) => {
-      nameplateDiv().innerHTML = name;
-    });
-    setIsShare(true);
-    setTimeout(() => {
-      MeetingManager.startViewingScreenShare(screenViewDiv());
-    }, 1000);
+    // setIsShare(true);
+
+    // setTimeout(() => {
+    //   MeetingManager.getAttendee(screenMessageDetail.attendeeId).then(
+    //     (name) => {
+    //       // nameplateDiv().innerHTML = name;
+    //     }
+    //   );
+    console.log("error----did-start");
+    MeetingManager.startViewingScreenShare(screenViewDiv());
+    // }, 1000);
   };
 
   const streamDidStop = (screenMesssageDetail) => {
@@ -116,6 +124,7 @@ const VideoManager = ({
     }
   }, [isScreenShare]);
 
+  console.log("allTiles", allTiles);
   const lgWd = getWidthRate(allTiles.length);
   const videos = allTiles.map((tile, idx) => (
     <Grid item lg={lgWd} key={`video-tile-${idx}`} className={classes.tileGrid}>

@@ -23,7 +23,8 @@ class MeetingManager {
   constructor(
     setTileToMuted,
     setAllTilesToInactiveSpeaker,
-    setTilesToActiveSpeakers
+    setTilesToActiveSpeakers,
+    removeMyTile
   ) {
     this.meetingSession = null;
     this.audioVideo = null;
@@ -38,6 +39,7 @@ class MeetingManager {
     this.setTileToMuted = setTileToMuted;
     this.setAllTilesToInactiveSpeaker = setAllTilesToInactiveSpeaker;
     this.setTilesToActiveSpeakers = setTilesToActiveSpeakers;
+    this.removeMyTile = removeMyTile;
   }
 
   async initializeMeetingSession(configuration) {
@@ -106,9 +108,12 @@ class MeetingManager {
       this.audioVideo.startLocalVideoTile();
     }
   }
-  stopLocalVideo() {
+  async stopLocalVideo() {
     if (this.videoInputs && this.videoInputs.length > 0) {
+      console.log("stop-local-func");
       this.audioVideo.stopLocalVideoTile();
+      await this.audioVideo.chooseVideoInputDevice(null);
+      this.removeMyTile();
     }
   }
   async startViewingScreenShare(screenViewElement) {

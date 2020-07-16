@@ -67,7 +67,8 @@ class Meeting extends Component {
     this.meetingManager = new MeetingManager(
       this.setTileToMuted,
       this.setAllTilesToInactiveSpeaker,
-      this.setTilesToActiveSpeakers
+      this.setTilesToActiveSpeakers,
+      this.removeMyTile
     );
   }
 
@@ -96,14 +97,31 @@ class Meeting extends Component {
     );
     if (index < 0) {
       allTiles.push(data);
+      console.log("addTile", allTiles);
       this.setState({ allTiles });
     }
   };
   removeTile = (tileId) => {
     const { allTiles } = this.state;
     const tileIndex = allTiles.findIndex((tile) => tile.tileId === tileId);
+    console.log("tileIndex", tileIndex);
     if (tileIndex >= 0) {
       allTiles.splice(tileIndex, 1);
+
+      console.log("removeTile", allTiles);
+      this.setState({ allTiles });
+    }
+  };
+  removeMyTile = () => {
+    const { allTiles } = this.state;
+    const tileIndex = allTiles.findIndex(
+      (tile) =>
+        tile.attendeeId === this.meetingManager.joinInfo.Attendee.AttendeeId
+    );
+    if (tileIndex >= 0) {
+      allTiles.splice(tileIndex, 1);
+
+      console.log("removeMyTile", allTiles);
       this.setState({ allTiles });
     }
   };
@@ -114,12 +132,15 @@ class Meeting extends Component {
     );
     if (tileIndex >= 0) {
       allTiles[tileIndex].isMuted = isMuted;
+
+      console.log("setTileToMuted", allTiles);
       this.setState({ allTiles });
     }
   };
   setAllTilesToInactiveSpeaker = () => {
     const { allTiles } = this.state;
-    map(this.allTiles, (tile) => (tile.isActive = false));
+    map(allTiles, (tile) => (tile.isActive = false));
+    console.log("setAllTilesToInactiveSpeaker", allTiles);
     this.setState({ allTiles });
   };
   setTilesToActiveSpeakers = (attendeeIds) => {
@@ -133,6 +154,7 @@ class Meeting extends Component {
         break;
       }
     }
+    console.log("setTilesToActiveSpeakers", allTiles);
     this.setState({ allTiles });
   };
 
@@ -142,6 +164,8 @@ class Meeting extends Component {
     // const id = this.props.match.params.id;
     const isInstructor = event && event && event.ch_instructor === name;
 
+    console.log("this.state.allTiles", this.state.allTiles);
+
     return (
       <React.Fragment>
         <ControllBar
@@ -149,12 +173,16 @@ class Meeting extends Component {
           isMute={this.state.isMute}
           isVideo={this.state.isVideo}
           isShare={this.state.isShare}
-          setEnd={() => {
+          setEnd={async () => {
             if (isInstructor) {
-              this.meetingManager.endMeeting(title);
-              updateMeetingStatus(title, { ch_meeting_status: 2 });
+              try {
+                await this.meetingManager.endMeeting(title);
+                updateMeetingStatus(title, { ch_meeting_status: 2 });
+              } catch (error) {
+                console.log("error-while-end-meeting", error);
+              }
             } else {
-              this.meetingManager.leaveMeeting(this.state.title);
+              this.meetingManager.leaveMeeting();
             }
           }}
           setIsMute={() => {
@@ -190,13 +218,22 @@ class Meeting extends Component {
               });
             }
           }}
-          setIsShare={() => {
+          setIsShare={async () => {
             const { isShare } = this.state;
-            this.setState({ isShare: !isShare });
             if (isShare) {
-              this.meetingManager.meetingSession.screenShare.stop();
+              try {
+                this.meetingManager.meetingSession.screenShare.stop();
+                this.setState({ isShare: !isShare });
+              } catch (error) {
+                console.log("error-while-off-sharing", error);
+              }
             } else {
-              this.meetingManager.meetingSession.screenShare.start().then();
+              try {
+                await this.meetingManager.meetingSession.screenShare.start();
+                this.setState({ isShare: !isShare });
+              } catch (error) {
+                console.log("error-while-on-sharing", error);
+              }
             }
           }}
         />
@@ -242,7 +279,7 @@ class Meeting extends Component {
                 handleScreenShareStoping={() =>
                   this.setState({ isShare: false })
                 }
-                setIsShare={(tOrF) => this.setState({ isShare: tOrF })}
+                // setIsShare={(tOrF) => this.setState({ isShare: tOrF })}
               />
             </Grid>
           </Grid>
