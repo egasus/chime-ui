@@ -4,54 +4,48 @@ import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 
 import VideoTile from "./VideoTitle";
-import { Typography } from "@material-ui/core";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import MicOnIcon from "@material-ui/icons/Mic";
+import MicOffIcon from "@material-ui/icons/MicOff";
+
+import { getAttendee as getAttendeeApi } from "apis/chimeMeeting";
 
 const muiStyles = (theme) => ({
   tileGrid: {
     padding: 10,
+    position: "relative",
   },
   screenview: {
     resize: "both",
   },
+  videoTileBottom: {
+    position: "absolute",
+    bottom: 30,
+  },
+  tileMuteIcon: {
+    marginRight: 30,
+    backgroundColor: "rgb(224, 35, 125)",
+  },
+  nameTypo: {
+    marginLeft: 30,
+  },
 });
 
-function reducer(state, { type, payload }) {
-  switch (type) {
-    case "TILE_UPDATED": {
-      const { tileId, ...rest } = payload;
-      return {
-        ...state,
-        [tileId]: {
-          ...rest,
-        },
-      };
-    }
-    case "TILE_DELETED": {
-      const { [payload]: omit, ...rest } = state;
-      return {
-        ...rest,
-      };
-    }
-    default: {
-      return state;
-    }
-  }
-}
 // TODO: Make as component.
 export const screenViewDiv = () =>
   document.getElementById("shared-content-view");
 export const nameplateDiv = () =>
   document.getElementById("share-content-view-nameplate");
 export const getWidthRate = (tileSize) => {
-  console.log('tileSize', tileSize);
-    if (tileSize < 2) {
-      return 12;
-    } else if (tileSize < 5) {
-      return 6;
-    } else if (tileSize < 10) {
-      return 4;
-    }
-    return 3;
+  if (tileSize < 2) {
+    return 12;
+  } else if (tileSize < 5) {
+    return 6;
+  } else if (tileSize < 10) {
+    return 4;
+  }
+  return 3;
 };
 
 const VideoManager = ({
@@ -60,20 +54,34 @@ const VideoManager = ({
   setIsShare,
   handleScreenShareStoping,
   classes,
+  allTiles,
+  addTile,
+  removeTile,
 }) => {
-  const [state, dispatch] = useReducer(reducer, {});
+  const videoTileDidUpdate = async (tileState) => {
+    if (!tileState.boundAttendeeId) {
+      return;
+    }
+    const attendeeInfo = await getAttendeeApi(
+      MeetingManager.title,
+      tileState.boundAttendeeId
+    );
 
-  const videoTileDidUpdate = (tileState) => {
-    console.log(tileState.isContent);
-    dispatch({ type: "TILE_UPDATED", payload: tileState });
+    const details = {
+      tileId: tileState.tileId,
+      attendeeId: tileState.boundAttendeeId,
+      attendeeName: attendeeInfo.Attendee.Name,
+    };
+    addTile(details);
   };
 
   const videoTileWasRemoved = (tileId) => {
-    dispatch({ type: "TILE_DELETED", payload: tileId });
+    setTimeout(() => {
+      removeTile(tileId);
+    }, 1500);
   };
 
   const streamDidStart = (screenMessageDetail) => {
-    console.log("screenMessageDetail", screenMessageDetail);
     MeetingManager.getAttendee(screenMessageDetail.attendeeId).then((name) => {
       nameplateDiv().innerHTML = name;
     });
@@ -108,18 +116,32 @@ const VideoManager = ({
     }
   }, [isScreenShare]);
 
-  const lgWd = getWidthRate(Object.keys(state).length);
-  console.log('lgWd--->', lgWd);
-  const videos = Object.keys(state).map((tileId, idx) => (
+  const lgWd = getWidthRate(allTiles.length);
+  const videos = allTiles.map((tile, idx) => (
     <Grid item lg={lgWd} key={`video-tile-${idx}`} className={classes.tileGrid}>
       <VideoTile
-        key={tileId}
+        key={tile.tileId}
         nameplate="Attendee ID"
         isLocal={false}
         bindVideoTile={(videoRef) =>
-          MeetingManager.bindVideoTile(parseInt(tileId), videoRef)
+          MeetingManager.bindVideoTile(tile.tileId, videoRef)
         }
       />
+      <Grid
+        container
+        justify="space-between"
+        alignItems="center"
+        className={classes.videoTileBottom}
+      >
+        <Typography className={classes.nameTypo}>{`${tile.attendeeName}${
+          tile.attendeeId === MeetingManager.joinInfo.Attendee.AttendeeId
+            ? " (YOU)"
+            : ""
+        }`}</Typography>
+        <IconButton className={classes.tileMuteIcon}>
+          {!tile.isMuted ? <MicOnIcon /> : <MicOffIcon />}
+        </IconButton>
+      </Grid>
     </Grid>
   ));
 

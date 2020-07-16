@@ -13,6 +13,7 @@ import MeetingManager from "services/MeetingManager";
 import ControllBar from "./components/MeetingNavbar";
 
 import { getMeetingEvent, updateMeetingStatus } from "apis";
+import map from "lodash/map";
 
 const muiStyles = () => ({
   connectingDiv: {
@@ -61,8 +62,13 @@ class Meeting extends Component {
       isError: false,
       event: null,
       title: props.match.params.id,
+      allTiles: [],
     };
-    this.meetingManager = MeetingManager;
+    this.meetingManager = new MeetingManager(
+      this.setTileToMuted,
+      this.setAllTilesToInactiveSpeaker,
+      this.setTilesToActiveSpeakers
+    );
   }
 
   async componentDidMount() {
@@ -82,6 +88,53 @@ class Meeting extends Component {
       }
     });
   }
+
+  addTile = (data) => {
+    const { allTiles } = this.state;
+    const index = allTiles.findIndex(
+      (tile) => tile.attendeeId === data.attendeeId
+    );
+    if (index < 0) {
+      allTiles.push(data);
+      this.setState({ allTiles });
+    }
+  };
+  removeTile = (tileId) => {
+    const { allTiles } = this.state;
+    const tileIndex = allTiles.findIndex((tile) => tile.tileId === tileId);
+    if (tileIndex >= 0) {
+      allTiles.splice(tileIndex, 1);
+      this.setState({ allTiles });
+    }
+  };
+  setTileToMuted = (attendeeId, isMuted) => {
+    const { allTiles } = this.state;
+    const tileIndex = allTiles.findIndex(
+      (tile) => tile.attendeeId === attendeeId
+    );
+    if (tileIndex >= 0) {
+      allTiles[tileIndex].isMuted = isMuted;
+      this.setState({ allTiles });
+    }
+  };
+  setAllTilesToInactiveSpeaker = () => {
+    const { allTiles } = this.state;
+    map(this.allTiles, (tile) => (tile.isActive = false));
+    this.setState({ allTiles });
+  };
+  setTilesToActiveSpeakers = (attendeeIds) => {
+    const { allTiles } = this.state;
+    for (const attendeeId of attendeeIds) {
+      const index = allTiles.findIndex(
+        (tile) => tile.attendeeId === attendeeId
+      );
+      if (index >= 0) {
+        allTiles[index].isActive = true;
+        break;
+      }
+    }
+    this.setState({ allTiles });
+  };
 
   render() {
     const { classes } = this.props;
@@ -181,6 +234,9 @@ class Meeting extends Component {
             <Grid item lg={9} xs={12} className={classes.videoGrid}>
               <MeetingAudio MeetingManager={this.meetingManager} />
               <VideoManager
+                addTile={this.addTile}
+                removeTile={this.removeTile}
+                allTiles={this.state.allTiles}
                 MeetingManager={this.meetingManager}
                 isScreenShare={this.state.isShare}
                 handleScreenShareStoping={() =>

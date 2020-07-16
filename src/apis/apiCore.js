@@ -2,10 +2,17 @@ import * as queryString from "query-string";
 import axios from "axios";
 
 const parameters = queryString.parse(window.location.search);
-export const baseUrl =
-  parameters.api_url ||
-  process.env.REACT_APP_API_URL ||
-  "https://selfiepop-api.herokuapp.com";
+// export const baseUrl =
+//   parameters.api_url ||
+//   process.env.REACT_APP_API_URL ||
+//   "https://selfiepop-api.herokuapp.com"
+const isDev = process.env.NODE_ENV !== "production";
+let baseUrl;
+if (isDev) {
+  baseUrl = "http://localhost:8080";
+} else {
+  baseUrl = "https://selfiepop-api.herokuapp.com";
+}
 
 function attachAuthorizationHeader(requestConfig) {
   const token = localStorage.getItem("token");

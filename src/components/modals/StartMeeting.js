@@ -30,7 +30,7 @@ class StartMeeting extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      region: null,
+      region: "",
     };
   }
 
