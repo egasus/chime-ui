@@ -12,9 +12,11 @@ import MeetingManager from "services/MeetingManager";
 // import Controller from "controller/views/Controller";
 import ControllBar from "./components/MeetingNavbar";
 import Chat from "./Chat";
+import Roster from "./Roster";
 
 import { getMeetingEvent, updateMeetingStatus } from "apis";
 import map from "lodash/map";
+import groupBy from "lodash/groupBy";
 
 const muiStyles = () => ({
   connectingDiv: {
@@ -31,7 +33,6 @@ const muiStyles = () => ({
     padding: 16,
   },
   msgGrid: {
-    border: "1px solid #ccc",
     height: "100%",
   },
   videoGrid: {
@@ -65,13 +66,15 @@ class Meeting extends Component {
       title: props.match.params.id,
       allTiles: [],
       messages: [],
+      rosters: [],
     };
     this.meetingManager = new MeetingManager(
       this.setTileToMuted,
       this.setAllTilesToInactiveSpeaker,
       this.setTilesToActiveSpeakers,
       this.removeMyTile,
-      this.handleReceivedMsg
+      this.handleReceivedMsg,
+      this.handleRosterUpdated
     );
   }
 
@@ -93,6 +96,14 @@ class Meeting extends Component {
     });
   }
 
+  handleRosterUpdated = (data) => {
+    console.log("data", data);
+    const rosters = Object.entries(groupBy(data, "id")).map(
+      ([key, value]) => value[0]
+    );
+    console.log("rosters", rosters);
+    this.setState({ rosters });
+  };
   addTile = (data) => {
     const { allTiles } = this.state;
     const index = allTiles.findIndex(
@@ -281,6 +292,10 @@ class Meeting extends Component {
             className={classes.layoutGrid}
           >
             <Grid item lg={3} xs={0} className={classes.msgGrid}>
+              <Roster
+                rosters={this.state.rosters}
+                allTiles={this.state.allTiles}
+              />
               <Chat
                 MeetingManager={this.meetingManager}
                 messages={this.state.messages}
@@ -297,7 +312,6 @@ class Meeting extends Component {
                 handleScreenShareStoping={() =>
                   this.setState({ isShare: false })
                 }
-                // setIsShare={(tOrF) => this.setState({ isShare: tOrF })}
               />
             </Grid>
           </Grid>

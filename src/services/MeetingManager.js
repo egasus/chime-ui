@@ -1,6 +1,4 @@
 import {
-  // AudioVideoFacade,
-  // AudioVideoObserver,
   ConsoleLogger,
   DefaultDeviceController,
   DefaultMeetingSession,
@@ -8,13 +6,6 @@ import {
   MeetingSessionConfiguration,
   DefaultActiveSpeakerPolicy,
   DataMessage,
-  AsyncScheduler,
-  // ReconnectingPromisedWebSocket,
-  // DefaultPromisedWebSocketFactory,
-  // DefaultDOMWebSocketFactory,
-  // FullJitterBackoff,
-  // ScreenShareViewFacade,
-  // ScreenObserver,
 } from "amazon-chime-sdk-js";
 
 import debounce from "lodash/debounce";
@@ -37,7 +28,8 @@ class MeetingManager {
     setAllTilesToInactiveSpeaker,
     setTilesToActiveSpeakers,
     removeMyTile,
-    handleReceivedMsg
+    handleReceivedMsg,
+    handleRosterUpdated
   ) {
     this.meetingSession = null;
     this.audioVideo = null;
@@ -52,7 +44,6 @@ class MeetingManager {
     this.lastMessageSender = null;
     this.lastReceivedMessageTimestamp = 0;
 
-    // this.messagingSocket = null;
     this.messageUpdateCallbacks = [];
 
     this.setTileToMuted = setTileToMuted;
@@ -60,78 +51,8 @@ class MeetingManager {
     this.setTilesToActiveSpeakers = setTilesToActiveSpeakers;
     this.removeMyTile = removeMyTile;
     this.handleReceivedMsg = handleReceivedMsg;
+    this.handleRosterUpdated = handleRosterUpdated;
   }
-
-  // joinRoomMessaging = async () => {
-  //   if (!this.configuration) {
-  //     console.log("configuration does not exist");
-  //     return;
-  //   }
-
-  //   const messageUrl = `${WSS_MSG_URL}?MeetingId=${this.configuration.meetingId}&AttendeeId=${this.configuration.credentials.attendeeId}&JoinToken=${this.configuration.credentials.joinToken}`;
-  //   this.messagingSocket = new ReconnectingPromisedWebSocket(
-  //     messageUrl,
-  //     [],
-  //     "arraybuffer",
-  //     new DefaultPromisedWebSocketFactory(new DefaultDOMWebSocketFactory()),
-  //     new FullJitterBackoff(1000, 0, 10000)
-  //   );
-
-  //   await this.messagingSocket.open(MeetingManager.WEB_SOCKET_TIMEOUT_MS);
-
-  //   this.messagingSocket.addEventListener("message", (event) => {
-  //     try {
-  //       const data = JSON.parse(event.data);
-  //       const { attendeeId } = data.payload;
-
-  //       let name;
-  //       const roster = this.rosters.find((r) => r.id === attendeeId);
-  //       if (roster) {
-  //         name = roster.name;
-  //       }
-  //       this.publishMessageUpdate({
-  //         type: data.type,
-  //         payload: data.payload,
-  //         timestampMs: Date.now(),
-  //         name,
-  //       });
-  //     } catch (error) {
-  //       console.log("error-message-listener", error);
-  //     }
-  //   });
-  // };
-
-  // sendMessage = (type, payload) => {
-  //   if (!this.messagingSocket) {
-  //     return;
-  //   }
-
-  //   const message = {
-  //     message: "sendmessage",
-  //     data: JSON.stringify({ type, payload }),
-  //   };
-  //   try {
-  //     this.messagingSocket.send(JSON.stringify(message));
-  //   } catch (error) {
-  //     console.log("error-send-msg", error);
-  //   }
-  // };
-
-  // subscribeToMessageUpdate = (callback) => {
-  //   this.messageUpdateCallbacks.push(callback);
-  // };
-  // unsubscribeFromMessageUpdate = (callback) => {
-  //   const index = this.messageUpdateCallbacks.indexOf(callback);
-  //   if (index !== -1) {
-  //     this.messageUpdateCallbacks.splice(index, 1);
-  //   }
-  // };
-  // publishMessageUpdate = (message) => {
-  //   for (let i = 0; i < this.messageUpdateCallbacks.length; i += 1) {
-  //     const callback = this.messageUpdateCallbacks[i];
-  //     callback(message);
-  //   }
-  // };
 
   async initializeMeetingSession(configuration) {
     const logger = new ConsoleLogger("DEV-SDK", LogLevel.DEBUG);
@@ -261,11 +182,6 @@ class MeetingManager {
     this.stopViewingScreenShare();
     this.meetingSession.screenShareView.close();
     this.audioVideo.stop();
-    // try {
-    //   await this.messagingSocket.close(MeetingManager.WEB_SOCKET_TIMEOUT_MS);
-    // } catch (error) {
-    //   console.log("error-close-msg-socket", error);
-    // }
   }
 
   setupDataMessage() {
@@ -278,7 +194,6 @@ class MeetingManager {
   }
   dataMessageHandler(dataMessage) {
     if (!dataMessage.throttled) {
-      // const isSelf = dataMessage.senderAttendeeId === this.meetingSession.configuration.credentials.attendeeId;
       if (dataMessage.timestampMs <= this.lastReceivedMessageTimestamp) {
         return;
       }
@@ -289,14 +204,12 @@ class MeetingManager {
     }
   }
   sendMessage = (textToSend) => {
-    // new AsyncScheduler().start(() => {
     if (!textToSend) {
       return;
     }
     this.meetingSession.audioVideo.realtimeSendDataMessage(
       "SET_HOST",
       new TextEncoder().encode(textToSend)
-      // MeetingManager.DATA_MESSAGE_LIFETIME_MS
     );
     // echo the message to the handler
     this.dataMessageHandler(
@@ -330,6 +243,7 @@ class MeetingManager {
         if (rosterIndex >= 0) {
           this.rosters.splice(rosterIndex, 1);
         }
+        this.handleRosterUpdated(this.rosters);
         return;
       }
       this.audioVideo.realtimeSubscribeToVolumeIndicator(
@@ -372,6 +286,7 @@ class MeetingManager {
               this.rosters[rosterIndex].name = attendeeInfo.Attendee.Name;
             }
           }
+          this.handleRosterUpdated(this.rosters);
         }, 300)
       );
     };
@@ -392,6 +307,7 @@ class MeetingManager {
           break;
         }
       }
+      this.handleRosterUpdated(this.rosters);
     };
     const scoresHander = (scores) => {
       for (const attendeeId in scores) {
@@ -399,6 +315,7 @@ class MeetingManager {
           this.rosters[attendeeId].score = scores[attendeeId];
         }
       }
+      this.handleRosterUpdated(this.rosters);
     };
 
     this.audioVideo.realtimeSubscribeToAttendeeIdPresence(
