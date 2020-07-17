@@ -30,6 +30,7 @@ import {
 import { MEETING_STATUS } from "config/constants";
 
 const TITLES = [
+  { title: "Title", key: "ch_title" },
   { title: "Instructor", key: "ch_instructor" },
   { title: "Scheduled Start", key: "ch_scheduled_start_date_time" },
   { title: "Scheduled End", key: "ch_scheduled_end_date_time" },
@@ -56,11 +57,13 @@ const Home = ({ classes }) => {
   const [openJoin, setOpenJoin] = useState(false);
   const [editIndex, setEditIndex] = useState(0);
   const [openIndex, setOpenIndex] = useState(0);
+  const [eventUpdated, setEventUpdated] = useState(false);
 
   const getAllEvents = async () => {
     try {
       const res = await getAllMeetingEvents();
       setEvents(res.data);
+      setEventUpdated(!eventUpdated);
     } catch (error) {
       console.log("error", error);
     }
@@ -76,7 +79,7 @@ const Home = ({ classes }) => {
   const delEvent = async (id) => {
     try {
       const res = await delMeetingEvent(id);
-      if (res.status) {
+      if (res) {
         getAllEvents();
       }
     } catch (error) {
@@ -86,7 +89,7 @@ const Home = ({ classes }) => {
   const updateEvent = async (uuid, obj) => {
     try {
       const res = await updateMeetingEvent(uuid, obj);
-      if (res.status) {
+      if (res) {
         getAllEvents();
       }
     } catch (error) {
@@ -194,10 +197,7 @@ const Home = ({ classes }) => {
           handleClose={() => setOpenEdit(false)}
           onSave={async (uuid, event) => {
             try {
-              const res = await updateEvent(uuid, event);
-              if (res) {
-                getAllEvents();
-              }
+              await updateEvent(uuid, event);
             } catch (error) {
               console.log("error", error);
             }

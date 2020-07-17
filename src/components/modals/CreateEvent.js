@@ -39,6 +39,7 @@ const CreateEvent = ({
 }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [title, setTitle] = useState("");
   const [participants, setParticipants] = useState([]);
   const participantItems = allParticipants
     .map(({ email }) => email)
@@ -53,6 +54,18 @@ const CreateEvent = ({
       <DialogTitle>Create a meeting event</DialogTitle>
       <DialogContent>
         <Grid container direction="column">
+          <Grid item xs={12}>
+            <Typography color="primary" className={classes.labelTypo}>
+              Meeting Title *
+            </Typography>
+            <TextField
+              required
+              value={title}
+              onChange={({ target: { value } }) => setTitle(value)}
+              fullWidth
+            />
+          </Grid>
+          <br />
           <Grid item xs={12}>
             <Typography color="primary" className={classes.labelTypo}>
               Start Date *
@@ -130,6 +143,7 @@ const CreateEvent = ({
                     ch_scheduled_start_date_time: startDate,
                     ch_scheduled_end_date_time: endDate,
                     ch_participants: participants,
+                    ch_title: title,
                     ch_instructor:
                       localStorage.getItem("email") || "test1@gmail.com",
                   })

@@ -42,12 +42,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function ButtonAppBar({
-  history,
   title,
   isMute,
   isVideo,
   isShare,
   isError,
+  event,
   setIsVideo,
   setIsMute,
   setIsShare,
@@ -70,7 +70,13 @@ function ButtonAppBar({
                 {title}
               </Typography>
             </Grid>
-            <Grid item xs={3} />
+            <Grid item xs={3}>
+              {/* {event && (<Typography variant="h6" className={classes.title}>
+                  {event.ch_scheduled_start_date_time
+                    ? event.ch_scheduled_start_date_time
+                    : ""}
+                </Typography>)} */}
+            </Grid>
             <Grid container item xs={3} justify="space-around">
               <IconButton
                 disabled={isError}

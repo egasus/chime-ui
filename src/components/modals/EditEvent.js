@@ -46,6 +46,7 @@ const EditEvent = ({
     moment(event.ch_scheduled_end_date_time).format("YYYY-MM-DDTkk:mm")
   );
   const [participants, setParticipants] = useState(event.ch_participants);
+  const [title, setTitle] = useState(event.ch_title);
   const participantItems = allParticipants
     .map(({ email }) => email)
     .concat(MOCK_USERS)
@@ -59,6 +60,18 @@ const EditEvent = ({
       <DialogTitle>Edit a meeting event</DialogTitle>
       <DialogContent>
         <Grid container direction="column">
+          <Grid item xs={12}>
+            <Typography color="primary" className={classes.labelTypo}>
+              Meeting Title
+            </Typography>
+            <TextField
+              required
+              value={title}
+              onChange={({ target: { value } }) => setTitle(value)}
+              fullWidth
+            />
+          </Grid>
+          <br />
           <Grid item xs={12}>
             <Typography color="primary" className={classes.labelTypo}>
               Start Date *
@@ -139,6 +152,7 @@ const EditEvent = ({
                       ch_scheduled_start_date_time: startDate,
                       ch_scheduled_end_date_time: endDate,
                       ch_participants: participants,
+                      ch_title: title,
                       ch_instructor:
                         localStorage.getItem("email") || "test1@gmail.com",
                     }

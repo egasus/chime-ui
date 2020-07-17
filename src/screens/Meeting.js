@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import { withRouter } from "react-router";
 
 import { withStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
@@ -97,11 +98,9 @@ class Meeting extends Component {
   }
 
   handleRosterUpdated = (data) => {
-    console.log("data", data);
     const rosters = Object.entries(groupBy(data, "id")).map(
       ([key, value]) => value[0]
     );
-    console.log("rosters", rosters);
     this.setState({ rosters });
   };
   addTile = (data) => {
@@ -188,9 +187,7 @@ class Meeting extends Component {
     const { classes } = this.props;
     const { loading, event, title, isError } = this.state;
     // const id = this.props.match.params.id;
-    const isInstructor = event && event && event.ch_instructor === name;
-
-    console.log("this.state.allTiles", this.state.allTiles);
+    const isInstructor = event && event.ch_instructor === name;
 
     return (
       <React.Fragment>
@@ -199,16 +196,20 @@ class Meeting extends Component {
           isMute={this.state.isMute}
           isVideo={this.state.isVideo}
           isShare={this.state.isShare}
+          title={event && event.ch_title ? event.ch_title : ""}
+          event={event}
           setEnd={async () => {
             if (isInstructor) {
               try {
                 await this.meetingManager.endMeeting(title);
                 updateMeetingStatus(title, { ch_meeting_status: 2 });
+                setTimeout(() => this.props.history.push("/"), 1000);
               } catch (error) {
                 console.log("error-while-end-meeting", error);
               }
             } else {
               this.meetingManager.leaveMeeting();
+              this.props.history.push("/");
             }
           }}
           setIsMute={() => {
@@ -325,4 +326,4 @@ Meeting.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(muiStyles)(Meeting);
+export default withRouter(withStyles(muiStyles)(Meeting));
