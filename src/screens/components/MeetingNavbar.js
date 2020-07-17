@@ -77,6 +77,7 @@ function ButtonAppBar({
                     : ""}
                 </Typography>)} */}
             </Grid>
+            <Grid item xs={3} />
             <Grid container item xs={3} justify="space-around">
               <IconButton
                 disabled={isError}
@@ -110,7 +111,6 @@ function ButtonAppBar({
                 <EndIcon /> End
               </IconButton>
             </Grid>
-            <Grid item xs={3} />
           </Grid>
         </Toolbar>
       </AppBar>
