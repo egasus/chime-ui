@@ -142,7 +142,6 @@ class MeetingManager {
       logger,
       deviceController
     );
-    console.log("configuration", configuration);
     this.configuration = configuration;
     this.audioVideo = this.meetingSession.audioVideo;
     // TODO: Update ScreenShareView to use new introduced content-based screen sharing.
@@ -203,7 +202,6 @@ class MeetingManager {
   }
   async stopLocalVideo() {
     if (this.videoInputs && this.videoInputs.length > 0) {
-      console.log("stop-local-func");
       this.audioVideo.stopLocalVideoTile();
       await this.audioVideo.chooseVideoInputDevice(null);
       this.removeMyTile();
@@ -250,7 +248,6 @@ class MeetingManager {
 
     this.setupDataMessage();
     this.audioVideo.addObserver(this);
-    console.log("this.audioVideo", this.audioVideo);
     await this.meetingSession.screenShare.open().then();
     await this.meetingSession.screenShareView.open().then();
 
@@ -275,20 +272,17 @@ class MeetingManager {
     this.meetingSession.audioVideo.realtimeSubscribeToReceiveDataMessage(
       "SET_HOST",
       (dataMessage) => {
-        console.log("data========================>>>>>", dataMessage);
         this.dataMessageHandler(dataMessage);
       }
     );
   }
   dataMessageHandler(dataMessage) {
-    console.log("dataMessage---->", dataMessage);
     if (!dataMessage.throttled) {
       // const isSelf = dataMessage.senderAttendeeId === this.meetingSession.configuration.credentials.attendeeId;
       if (dataMessage.timestampMs <= this.lastReceivedMessageTimestamp) {
         return;
       }
       this.lastReceivedMessageTimestamp = dataMessage.timestampMs;
-      console.log("datamessageg", dataMessage);
       this.handleReceivedMsg(dataMessage);
     } else {
       console.log("Message is throttled. Please resend");
@@ -317,7 +311,6 @@ class MeetingManager {
     // });
   };
   getMsgSenderName(attendeeId) {
-    console.log("this.rosters", this.rosters);
     return (this.rosters.find((r) => r.id === attendeeId) || {}).name;
   }
 
@@ -343,7 +336,6 @@ class MeetingManager {
         attendeeId,
         debounce(async (attendeeId, volume, muted, signalStrength) => {
           this.setTileToMuted(attendeeId, muted);
-          console.log("this.rosters", this.rosters);
           const rosterIndex = this.rosters.findIndex(
             (roster) => roster.id === attendeeId
           );

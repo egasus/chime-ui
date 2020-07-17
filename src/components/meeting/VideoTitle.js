@@ -8,6 +8,8 @@ const muiStyles = (theme) => ({
     width: "100%",
     borderRadius: 10,
     border: "1px solid #ccc",
+    maxHeight: 768,
+    objectFit: "fill",
   },
 });
 
