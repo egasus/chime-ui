@@ -7,6 +7,12 @@ import {
   LogLevel,
   MeetingSessionConfiguration,
   DefaultActiveSpeakerPolicy,
+  DataMessage,
+  AsyncScheduler,
+  // ReconnectingPromisedWebSocket,
+  // DefaultPromisedWebSocketFactory,
+  // DefaultDOMWebSocketFactory,
+  // FullJitterBackoff,
   // ScreenShareViewFacade,
   // ScreenObserver,
 } from "amazon-chime-sdk-js";
@@ -19,12 +25,19 @@ import {
   getAttendee as getAttendeeApi,
 } from "apis/chimeMeeting";
 
+// const WSS_MSG_URL = "wss://z9wdczxpa7.execute-api.us-east-1.amazonaws.com/Prod";
+// const TOPIC = 'SET_HOST';
+
 class MeetingManager {
+  static WEB_SOCKET_TIMEOUT_MS = 10000;
+  static DATA_MESSAGE_LIFETIME_MS = 300000;
+  static TOPIC = "SET_HOST";
   constructor(
     setTileToMuted,
     setAllTilesToInactiveSpeaker,
     setTilesToActiveSpeakers,
-    removeMyTile
+    removeMyTile,
+    handleReceivedMsg
   ) {
     this.meetingSession = null;
     this.audioVideo = null;
@@ -34,16 +47,94 @@ class MeetingManager {
     this.selectedVideoInput = null;
     this.isViewingSharedScreen = false;
     this.joinInfo = null;
+    this.configuration = null;
     this.rosters = [];
+    this.lastMessageSender = null;
+    this.lastReceivedMessageTimestamp = 0;
+
+    // this.messagingSocket = null;
+    this.messageUpdateCallbacks = [];
 
     this.setTileToMuted = setTileToMuted;
     this.setAllTilesToInactiveSpeaker = setAllTilesToInactiveSpeaker;
     this.setTilesToActiveSpeakers = setTilesToActiveSpeakers;
     this.removeMyTile = removeMyTile;
+    this.handleReceivedMsg = handleReceivedMsg;
   }
 
+  // joinRoomMessaging = async () => {
+  //   if (!this.configuration) {
+  //     console.log("configuration does not exist");
+  //     return;
+  //   }
+
+  //   const messageUrl = `${WSS_MSG_URL}?MeetingId=${this.configuration.meetingId}&AttendeeId=${this.configuration.credentials.attendeeId}&JoinToken=${this.configuration.credentials.joinToken}`;
+  //   this.messagingSocket = new ReconnectingPromisedWebSocket(
+  //     messageUrl,
+  //     [],
+  //     "arraybuffer",
+  //     new DefaultPromisedWebSocketFactory(new DefaultDOMWebSocketFactory()),
+  //     new FullJitterBackoff(1000, 0, 10000)
+  //   );
+
+  //   await this.messagingSocket.open(MeetingManager.WEB_SOCKET_TIMEOUT_MS);
+
+  //   this.messagingSocket.addEventListener("message", (event) => {
+  //     try {
+  //       const data = JSON.parse(event.data);
+  //       const { attendeeId } = data.payload;
+
+  //       let name;
+  //       const roster = this.rosters.find((r) => r.id === attendeeId);
+  //       if (roster) {
+  //         name = roster.name;
+  //       }
+  //       this.publishMessageUpdate({
+  //         type: data.type,
+  //         payload: data.payload,
+  //         timestampMs: Date.now(),
+  //         name,
+  //       });
+  //     } catch (error) {
+  //       console.log("error-message-listener", error);
+  //     }
+  //   });
+  // };
+
+  // sendMessage = (type, payload) => {
+  //   if (!this.messagingSocket) {
+  //     return;
+  //   }
+
+  //   const message = {
+  //     message: "sendmessage",
+  //     data: JSON.stringify({ type, payload }),
+  //   };
+  //   try {
+  //     this.messagingSocket.send(JSON.stringify(message));
+  //   } catch (error) {
+  //     console.log("error-send-msg", error);
+  //   }
+  // };
+
+  // subscribeToMessageUpdate = (callback) => {
+  //   this.messageUpdateCallbacks.push(callback);
+  // };
+  // unsubscribeFromMessageUpdate = (callback) => {
+  //   const index = this.messageUpdateCallbacks.indexOf(callback);
+  //   if (index !== -1) {
+  //     this.messageUpdateCallbacks.splice(index, 1);
+  //   }
+  // };
+  // publishMessageUpdate = (message) => {
+  //   for (let i = 0; i < this.messageUpdateCallbacks.length; i += 1) {
+  //     const callback = this.messageUpdateCallbacks[i];
+  //     callback(message);
+  //   }
+  // };
+
   async initializeMeetingSession(configuration) {
-    const logger = new ConsoleLogger("DEV-SDK", LogLevel.ERROR);
+    const logger = new ConsoleLogger("DEV-SDK", LogLevel.DEBUG);
     const deviceController = new DefaultDeviceController(logger);
     configuration.enableWebAudio = false;
     this.meetingSession = new DefaultMeetingSession(
@@ -51,6 +142,8 @@ class MeetingManager {
       logger,
       deviceController
     );
+    console.log("configuration", configuration);
+    this.configuration = configuration;
     this.audioVideo = this.meetingSession.audioVideo;
     // TODO: Update ScreenShareView to use new introduced content-based screen sharing.
     this.screenShareView = this.meetingSession.screenShareView;
@@ -155,7 +248,9 @@ class MeetingManager {
     this.audioVideo.addDeviceChangeObserver(this);
     this.fetchAndSetupCameraDevices();
 
+    this.setupDataMessage();
     this.audioVideo.addObserver(this);
+    console.log("this.audioVideo", this.audioVideo);
     await this.meetingSession.screenShare.open().then();
     await this.meetingSession.screenShareView.open().then();
 
@@ -165,10 +260,65 @@ class MeetingManager {
     await endMeetingApi(title);
     this.leaveMeeting();
   }
-  leaveMeeting() {
+  async leaveMeeting() {
     this.stopViewingScreenShare();
     this.meetingSession.screenShareView.close();
     this.audioVideo.stop();
+    // try {
+    //   await this.messagingSocket.close(MeetingManager.WEB_SOCKET_TIMEOUT_MS);
+    // } catch (error) {
+    //   console.log("error-close-msg-socket", error);
+    // }
+  }
+
+  setupDataMessage() {
+    this.meetingSession.audioVideo.realtimeSubscribeToReceiveDataMessage(
+      "SET_HOST",
+      (dataMessage) => {
+        console.log("data========================>>>>>", dataMessage);
+        this.dataMessageHandler(dataMessage);
+      }
+    );
+  }
+  dataMessageHandler(dataMessage) {
+    console.log("dataMessage---->", dataMessage);
+    if (!dataMessage.throttled) {
+      // const isSelf = dataMessage.senderAttendeeId === this.meetingSession.configuration.credentials.attendeeId;
+      if (dataMessage.timestampMs <= this.lastReceivedMessageTimestamp) {
+        return;
+      }
+      this.lastReceivedMessageTimestamp = dataMessage.timestampMs;
+      console.log("datamessageg", dataMessage);
+      this.handleReceivedMsg(dataMessage);
+    } else {
+      console.log("Message is throttled. Please resend");
+    }
+  }
+  sendMessage = (textToSend) => {
+    // new AsyncScheduler().start(() => {
+    if (!textToSend) {
+      return;
+    }
+    this.meetingSession.audioVideo.realtimeSendDataMessage(
+      "SET_HOST",
+      new TextEncoder().encode(textToSend)
+      // MeetingManager.DATA_MESSAGE_LIFETIME_MS
+    );
+    // echo the message to the handler
+    this.dataMessageHandler(
+      new DataMessage(
+        Date.now(),
+        MeetingManager.TOPIC,
+        new TextEncoder().encode(textToSend),
+        this.meetingSession.configuration.credentials.attendeeId,
+        this.meetingSession.configuration.credentials.externalUserId
+      )
+    );
+    // });
+  };
+  getMsgSenderName(attendeeId) {
+    console.log("this.rosters", this.rosters);
+    return (this.rosters.find((r) => r.id === attendeeId) || {}).name;
   }
 
   bindAudioElement(ref) {

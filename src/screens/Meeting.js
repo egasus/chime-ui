@@ -11,6 +11,7 @@ import VideoManager from "components/meeting/VideoManager";
 import MeetingManager from "services/MeetingManager";
 // import Controller from "controller/views/Controller";
 import ControllBar from "./components/MeetingNavbar";
+import Chat from "./Chat";
 
 import { getMeetingEvent, updateMeetingStatus } from "apis";
 import map from "lodash/map";
@@ -63,12 +64,14 @@ class Meeting extends Component {
       event: null,
       title: props.match.params.id,
       allTiles: [],
+      messages: [],
     };
     this.meetingManager = new MeetingManager(
       this.setTileToMuted,
       this.setAllTilesToInactiveSpeaker,
       this.setTilesToActiveSpeakers,
-      this.removeMyTile
+      this.removeMyTile,
+      this.handleReceivedMsg
     );
   }
 
@@ -156,6 +159,18 @@ class Meeting extends Component {
     }
     console.log("setTilesToActiveSpeakers", allTiles);
     this.setState({ allTiles });
+  };
+  handleReceivedMsg = (message) => {
+    const { messages } = this.state;
+    const { data, senderAttendeeId, timestampMs } = message;
+    const updatedMessage = {
+      data: new TextDecoder().decode(data),
+      attendeeId: senderAttendeeId,
+      senderName: this.meetingManager.getMsgSenderName(senderAttendeeId),
+      timestampMs,
+    };
+    messages.push(updatedMessage);
+    this.setState({ messages });
   };
 
   render() {
@@ -266,7 +281,10 @@ class Meeting extends Component {
             className={classes.layoutGrid}
           >
             <Grid item lg={3} xs={0} className={classes.msgGrid}>
-              <Typography>Message All</Typography>
+              <Chat
+                MeetingManager={this.meetingManager}
+                messages={this.state.messages}
+              />
             </Grid>
             <Grid item lg={9} xs={12} className={classes.videoGrid}>
               <MeetingAudio MeetingManager={this.meetingManager} />
