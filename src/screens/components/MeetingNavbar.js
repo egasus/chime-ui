@@ -18,6 +18,8 @@ import ScreenShareOffIcon from "@material-ui/icons/StopScreenShare";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import EndIcon from "@material-ui/icons/PowerSettingsNew";
 
+import "./Navbar.css";
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -29,6 +31,13 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     color: "#fff",
     cursor: "pointer",
+  },
+  appbar: {
+    backgroundColor: "rgb(69,37,78)",
+  },
+  iconButton: {
+    color: "#fff !important",
+    fontSize: 12,
   },
 }));
 
@@ -48,7 +57,7 @@ function ButtonAppBar({
 
   return (
     <div className={classes.root}>
-      <AppBar position="static">
+      <AppBar position="static" className={classes.appbar}>
         <Toolbar>
           <Grid
             container
@@ -61,21 +70,38 @@ function ButtonAppBar({
                 {title}
               </Typography>
             </Grid>
-            <Grid container item xs={6} justify="space-around">
-              <IconButton disabled={isError} onClick={setIsMute}>
-                {isMute ? <MicOffIcon /> : <MicIcon />}
+            <Grid item xs={3} />
+            <Grid container item xs={3} justify="space-around">
+              <IconButton
+                disabled={isError}
+                onClick={setIsMute}
+                className={classes.iconButton}
+              >
+                {isMute ? <MicOffIcon /> : <MicIcon />} Mute
               </IconButton>
-              <IconButton disabled={isError} onClick={setIsVideo}>
-                {isVideo ? <VideocamIcon /> : <VideocamOffIcon />}
+              <IconButton
+                disabled={isError}
+                onClick={setIsVideo}
+                className={classes.iconButton}
+              >
+                {isVideo ? <VideocamIcon /> : <VideocamOffIcon />} Video
               </IconButton>
-              <IconButton disabled={isError} onClick={setIsShare}>
-                {isShare ? <ScreenShareIcon /> : <ScreenShareOffIcon />}
+              <IconButton
+                disabled={isError}
+                onClick={setIsShare}
+                className={classes.iconButton}
+              >
+                {isShare ? <ScreenShareIcon /> : <ScreenShareOffIcon />} Screen
               </IconButton>
-              <IconButton>
-                <MoreHorizIcon />
+              <IconButton className={classes.iconButton}>
+                <MoreHorizIcon /> More
               </IconButton>
-              <IconButton disabled={isError} onClick={setEnd}>
-                <EndIcon />
+              <IconButton
+                disabled={isError}
+                onClick={setEnd}
+                className={classes.iconButton}
+              >
+                <EndIcon /> End
               </IconButton>
             </Grid>
             <Grid item xs={3} />

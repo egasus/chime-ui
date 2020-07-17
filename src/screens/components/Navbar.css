@@ -1,0 +1,6 @@
+.MuiIconButton-label {
+  flex-direction: column !important;
+}
+.MuiIconButton-label.MuiSvgIcon-root {
+  margin-bottom: 5px;
+}
