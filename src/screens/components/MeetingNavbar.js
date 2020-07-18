@@ -18,7 +18,11 @@ import ScreenShareOffIcon from "@material-ui/icons/StopScreenShare";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
 import EndIcon from "@material-ui/icons/PowerSettingsNew";
 
+import MeetingDuration from "./MeetingDuration";
+
 import "./Navbar.css";
+
+const TITLE_COLOR = "rgb(229,16,117)";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
     paddingRight: 12,
   },
   title: {
-    color: "rgb(229,16,117)",
+    color: TITLE_COLOR,
     fontSize: 20,
     fontWeight: 600,
   },
@@ -44,6 +48,14 @@ const useStyles = makeStyles((theme) => ({
   iconButton: {
     color: "#fff !important",
     fontSize: 12,
+  },
+  durationItem: {
+    display: "flex",
+    backgroundColor: "#000",
+    borderRadius: 5,
+    padding: 6,
+    width: 280,
+    justifyContent: "space-evenly",
   },
 }));
 
@@ -81,12 +93,17 @@ function ButtonAppBar({
                 {title}
               </Typography>
             </Grid>
-            <Grid item xs={3}>
+            {/* <Grid item xs={3}>
               {/* {event && (<Typography variant="h6" className={classes.title}>
                   {event.ch_scheduled_start_date_time
                     ? event.ch_scheduled_start_date_time
                     : ""}
                 </Typography>)} */}
+            <Grid item xs={3}>
+              <div className={classes.durationItem}>
+                <MeetingDuration label="Started:" value="3:00 PM" />
+                <MeetingDuration label="Remaining:" value="70mins" />
+              </div>
             </Grid>
             <Grid item xs={3} />
             <Grid container item xs={3} justify="space-around">
