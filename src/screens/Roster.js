@@ -25,6 +25,9 @@ const muiStyles = () => ({
   iconWrapper: {
     display: "flex",
   },
+  rosterName: {
+    fontSize: 15,
+  },
 });
 
 const Roster = ({ MeetingManager, classes, rosters, allTiles }) => {
@@ -39,7 +42,9 @@ const Roster = ({ MeetingManager, classes, rosters, allTiles }) => {
       {rosters.map((roster, idx) => (
         <>
           <div className={classes.roster} key={`${idx}-roster`}>
-            <Typography>{roster.name}</Typography>
+            <Typography className={classes.rosterName}>
+              {roster.name}
+            </Typography>
             <div className={classes.iconWrapper}>
               <IconButton>
                 {tileAttendeeIds.includes(roster.id) ? (

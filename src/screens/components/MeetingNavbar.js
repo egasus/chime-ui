@@ -27,10 +27,16 @@ const useStyles = makeStyles((theme) => ({
   menuButton: {
     marginRight: theme.spacing(2),
   },
-  title: {
-    flexGrow: 1,
+  instructor: {
     color: "#fff",
-    cursor: "pointer",
+    fontSize: 20,
+    fontWeight: 300,
+    paddingRight: 12,
+  },
+  title: {
+    color: "rgb(229,16,117)",
+    fontSize: 20,
+    fontWeight: 600,
   },
   appbar: {
     backgroundColor: "rgb(69,37,78)",
@@ -65,7 +71,12 @@ function ButtonAppBar({
             alignItems="center"
             spacing="2"
           >
-            <Grid item xs={3}>
+            <Grid container item xs={3}>
+              {event && event.ch_instructor && (
+                <Typography variant="h6" className={classes.instructor}>
+                  {event.ch_instructor}
+                </Typography>
+              )}
               <Typography variant="h6" className={classes.title}>
                 {title}
               </Typography>

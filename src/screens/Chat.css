@@ -34,12 +34,13 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   word-break: break-word;
+  font-size: 13px;
 }
 
 .date {
   display: inline;
-  margin-left: 0.5rem;
-  font-size: 0.8rem;
+  margin: 12px 12px;
+  font-size: 11px;
   color: #ccc;
 }
 
@@ -52,6 +53,7 @@
   display: inline-flex;
   width: fit-content;
   border-radius: 12px;
+  font-size: 14px;
 }
 .message.me {
   background-color: rgb(228, 16, 116);
@@ -67,9 +69,16 @@
   border-top: 1px solid #ccc;
   background-color: rgb(248, 248, 250);
 }
+.bottom {
+  height: 10px;
+}
 
 .senderWrapper.me {
   display: flex;
   justify-content: flex-end;
   align-items: baseline;
+  flex-direction: row-reverse;
+}
+.chatInput .MuiIconButton-label {
+  transform: rotate(45deg);
 }
