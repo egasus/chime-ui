@@ -55,7 +55,7 @@ class MeetingManager {
   }
 
   async initializeMeetingSession(configuration) {
-    const logger = new ConsoleLogger("DEV-SDK", LogLevel.DEBUG);
+    const logger = new ConsoleLogger("DEV-SDK", LogLevel.ERROR);
     const deviceController = new DefaultDeviceController(logger);
     configuration.enableWebAudio = false;
     this.meetingSession = new DefaultMeetingSession(

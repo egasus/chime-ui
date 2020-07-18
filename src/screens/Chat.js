@@ -9,7 +9,6 @@ const cx = classNames.bind(styles);
 
 const Chat = ({ MeetingManager, messages }) => {
   const bottomElement = useRef(null);
-
   useEffect(() => {
     setTimeout(() => {
       if (bottomElement) {
@@ -18,8 +17,7 @@ const Chat = ({ MeetingManager, messages }) => {
         });
       }
     }, 10);
-  }, [messages]);
-  console.log("messages===>", messages);
+  });
 
   return (
     <div className={cx("chat")}>
