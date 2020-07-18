@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { withRouter } from "react-router";
+import moment from "moment";
 
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
@@ -66,12 +67,37 @@ function ButtonAppBar({
   isShare,
   isError,
   event,
+  meetingStartTime,
   setIsVideo,
   setIsMute,
   setIsShare,
   setEnd,
 }) {
   const classes = useStyles();
+  const [periodValue, setPeriodValue] = useState(0);
+
+  const [startedTime, durationValue] = useMemo(() => {
+    if (!meetingStartTime || !event.ch_scheduled_end_date_time) {
+      return [null, null];
+    }
+    const meetingStart = moment(meetingStartTime).format("kk:mm A");
+    const startTimestamp = moment(meetingStartTime).unix();
+    const scheduledEndTimestamp = moment(
+      event.ch_scheduled_end_date_time
+    ).unix();
+    const remainingMins = parseInt(
+      (scheduledEndTimestamp - startTimestamp) / 60
+    );
+    return [meetingStart, remainingMins];
+  }, [meetingStartTime, event.ch_scheduled_end_date_time]);
+
+  useEffect(() => {
+    let interval = null;
+    interval = setInterval(() => {
+      setPeriodValue(periodValue + 1);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [periodValue]);
 
   return (
     <div className={classes.root}>
@@ -101,8 +127,11 @@ function ButtonAppBar({
                 </Typography>)} */}
             <Grid item xs={3}>
               <div className={classes.durationItem}>
-                <MeetingDuration label="Started:" value="3:00 PM" />
-                <MeetingDuration label="Remaining:" value="70mins" />
+                <MeetingDuration label="Started:" value={startedTime} />
+                <MeetingDuration
+                  label="Remaining:"
+                  value={`${durationValue - periodValue} mins`}
+                />
               </div>
             </Grid>
             <Grid item xs={3} />

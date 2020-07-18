@@ -110,18 +110,15 @@ class Meeting extends Component {
     );
     if (index < 0) {
       allTiles.push(data);
-      console.log("addTile", allTiles);
       this.setState({ allTiles });
     }
   };
   removeTile = (tileId) => {
     const { allTiles } = this.state;
     const tileIndex = allTiles.findIndex((tile) => tile.tileId === tileId);
-    console.log("tileIndex", tileIndex);
     if (tileIndex >= 0) {
       allTiles.splice(tileIndex, 1);
 
-      console.log("removeTile", allTiles);
       this.setState({ allTiles });
     }
   };
@@ -191,79 +188,82 @@ class Meeting extends Component {
 
     return (
       <React.Fragment>
-        <ControllBar
-          isError={isError}
-          isMute={this.state.isMute}
-          isVideo={this.state.isVideo}
-          isShare={this.state.isShare}
-          title={event && event.ch_title ? event.ch_title : ""}
-          event={event}
-          setEnd={async () => {
-            if (isInstructor) {
-              try {
-                await this.meetingManager.endMeeting(title);
-                updateMeetingStatus(title, { ch_meeting_status: 2 });
-                setTimeout(() => this.props.history.push("/"), 1000);
-              } catch (error) {
-                console.log("error-while-end-meeting", error);
-              }
-            } else {
-              this.meetingManager.leaveMeeting();
-              this.props.history.push("/");
-            }
-          }}
-          setIsMute={() => {
-            if (this.state.isMute) {
-              this.setState({ isMute: false }, () =>
-                this.meetingManager.audioVideo.realtimeUnmuteLocalAudio()
-              );
-            } else {
-              this.setState({ isMute: true }, () =>
-                this.meetingManager.audioVideo.realtimeMuteLocalAudio()
-              );
-            }
-          }}
-          setIsVideo={() => {
-            // toggle video camera
-            if (
-              !this.meetingManager.videoInputs ||
-              this.meetingManager.videoInputs.length < 1
-            ) {
-              alert("No camera device found. Please connect a camera");
-              return;
-            }
-            if (
-              this.meetingManager.videoInputs &&
-              this.meetingManager.videoInputs.length > 0
-            ) {
-              this.setState({ isVideo: !this.state.isVideo }, () => {
-                if (this.state.isVideo) {
-                  this.meetingManager.startLocalVideo();
-                } else {
-                  this.meetingManager.stopLocalVideo();
+        {event && (
+          <ControllBar
+            isError={isError}
+            isMute={this.state.isMute}
+            isVideo={this.state.isVideo}
+            isShare={this.state.isShare}
+            title={event && event.ch_title ? event.ch_title : ""}
+            event={event}
+            meetingStartTime={this.meetingManager.meetingStartTime}
+            setEnd={async () => {
+              if (isInstructor) {
+                try {
+                  await this.meetingManager.endMeeting(title);
+                  updateMeetingStatus(title, { ch_meeting_status: 2 });
+                  setTimeout(() => this.props.history.push("/"), 1000);
+                } catch (error) {
+                  console.log("error-while-end-meeting", error);
                 }
-              });
-            }
-          }}
-          setIsShare={async () => {
-            const { isShare } = this.state;
-            if (isShare) {
-              try {
-                this.meetingManager.meetingSession.screenShare.stop();
-                this.setState({ isShare: !isShare });
-              } catch (error) {
-                console.log("error-while-off-sharing", error);
+              } else {
+                this.meetingManager.leaveMeeting();
+                this.props.history.push("/");
               }
-            } else {
-              try {
-                await this.meetingManager.meetingSession.screenShare.start();
-                this.setState({ isShare: !isShare });
-              } catch (error) {
-                console.log("error-while-on-sharing", error);
+            }}
+            setIsMute={() => {
+              if (this.state.isMute) {
+                this.setState({ isMute: false }, () =>
+                  this.meetingManager.audioVideo.realtimeUnmuteLocalAudio()
+                );
+              } else {
+                this.setState({ isMute: true }, () =>
+                  this.meetingManager.audioVideo.realtimeMuteLocalAudio()
+                );
               }
-            }
-          }}
-        />
+            }}
+            setIsVideo={() => {
+              // toggle video camera
+              if (
+                !this.meetingManager.videoInputs ||
+                this.meetingManager.videoInputs.length < 1
+              ) {
+                alert("No camera device found. Please connect a camera");
+                return;
+              }
+              if (
+                this.meetingManager.videoInputs &&
+                this.meetingManager.videoInputs.length > 0
+              ) {
+                this.setState({ isVideo: !this.state.isVideo }, () => {
+                  if (this.state.isVideo) {
+                    this.meetingManager.startLocalVideo();
+                  } else {
+                    this.meetingManager.stopLocalVideo();
+                  }
+                });
+              }
+            }}
+            setIsShare={async () => {
+              const { isShare } = this.state;
+              if (isShare) {
+                try {
+                  this.meetingManager.meetingSession.screenShare.stop();
+                  this.setState({ isShare: !isShare });
+                } catch (error) {
+                  console.log("error-while-off-sharing", error);
+                }
+              } else {
+                try {
+                  await this.meetingManager.meetingSession.screenShare.start();
+                  this.setState({ isShare: !isShare });
+                } catch (error) {
+                  console.log("error-while-on-sharing", error);
+                }
+              }
+            }}
+          />
+        )}
         {isError && (
           <div className={classes.errorDiv}>
             <Typography align="center">

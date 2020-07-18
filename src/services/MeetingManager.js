@@ -9,6 +9,7 @@ import {
 } from "amazon-chime-sdk-js";
 
 import debounce from "lodash/debounce";
+import moment from "moment";
 
 import {
   createMeeting,
@@ -52,6 +53,7 @@ class MeetingManager {
     this.removeMyTile = removeMyTile;
     this.handleReceivedMsg = handleReceivedMsg;
     this.handleRosterUpdated = handleRosterUpdated;
+    this.meetingStartTime = null;
   }
 
   async initializeMeetingSession(configuration) {
@@ -173,6 +175,7 @@ class MeetingManager {
     await this.meetingSession.screenShareView.open().then();
 
     this.audioVideo.start();
+    this.meetingStartTime = moment(new Date());
   }
   async endMeeting(title) {
     await endMeetingApi(title);
