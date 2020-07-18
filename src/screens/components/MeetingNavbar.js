@@ -65,6 +65,7 @@ function ButtonAppBar({
   isMute,
   isVideo,
   isShare,
+  isSelfSharing,
   isError,
   event,
   meetingStartTime,
@@ -151,7 +152,7 @@ function ButtonAppBar({
                 {isVideo ? <VideocamIcon /> : <VideocamOffIcon />} Video
               </IconButton>
               <IconButton
-                disabled={isError}
+                disabled={isError || (!isSelfSharing && isShare)}
                 onClick={setIsShare}
                 className={classes.iconButton}
               >
@@ -180,6 +181,7 @@ ButtonAppBar.propTypes = {
   isMute: PropTypes.bool.isRequired,
   isVideo: PropTypes.bool.isRequired,
   isShare: PropTypes.bool.isRequired,
+  isSelfSharing: PropTypes.bool.isRequired,
   isError: PropTypes.bool.isRequired,
   setIsVideo: PropTypes.func.isRequired,
   setIsMute: PropTypes.func.isRequired,

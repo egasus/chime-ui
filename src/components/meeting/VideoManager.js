@@ -51,7 +51,7 @@ export const getWidthRate = (tileSize) => {
 const VideoManager = ({
   MeetingManager,
   isScreenShare,
-  // setIsShare,
+  setIsShare,
   handleScreenShareStoping,
   classes,
   allTiles,
@@ -86,7 +86,14 @@ const VideoManager = ({
   };
 
   const streamDidStart = (screenMessageDetail) => {
-    // setIsShare(true);
+    if (isScreenShare) {
+      MeetingManager.startViewingScreenShare(screenViewDiv());
+    } else {
+      // remote stream
+      setIsShare(true, () =>
+        MeetingManager.startViewingScreenShare(screenViewDiv())
+      );
+    }
 
     // setTimeout(() => {
     //   MeetingManager.getAttendee(screenMessageDetail.attendeeId).then(
@@ -94,8 +101,7 @@ const VideoManager = ({
     //       // nameplateDiv().innerHTML = name;
     //     }
     //   );
-    console.log("error----did-start");
-    MeetingManager.startViewingScreenShare(screenViewDiv());
+
     // }, 1000);
   };
 

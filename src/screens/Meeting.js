@@ -68,6 +68,7 @@ class Meeting extends Component {
       allTiles: [],
       messages: [],
       rosters: [],
+      isSelfSharing: false,
     };
     this.meetingManager = new MeetingManager(
       this.setTileToMuted,
@@ -194,6 +195,7 @@ class Meeting extends Component {
             isMute={this.state.isMute}
             isVideo={this.state.isVideo}
             isShare={this.state.isShare}
+            isSelfSharing={this.state.isSelfSharing}
             title={event && event.ch_title ? event.ch_title : ""}
             event={event}
             meetingStartTime={this.meetingManager.meetingStartTime}
@@ -249,14 +251,14 @@ class Meeting extends Component {
               if (isShare) {
                 try {
                   this.meetingManager.meetingSession.screenShare.stop();
-                  this.setState({ isShare: !isShare });
+                  this.setState({ isShare: false, isSelfSharing: false });
                 } catch (error) {
                   console.log("error-while-off-sharing", error);
                 }
               } else {
                 try {
                   await this.meetingManager.meetingSession.screenShare.start();
-                  this.setState({ isShare: !isShare });
+                  this.setState({ isShare: true, isSelfSharing: true });
                 } catch (error) {
                   console.log("error-while-on-sharing", error);
                 }
@@ -312,6 +314,9 @@ class Meeting extends Component {
                 isScreenShare={this.state.isShare}
                 handleScreenShareStoping={() =>
                   this.setState({ isShare: false })
+                }
+                setIsShare={(tOrF, callback) =>
+                  this.setState({ isShare: tOrF }, callback)
                 }
               />
             </Grid>
