@@ -6,9 +6,9 @@ import { withStyles } from "@material-ui/core/styles";
 const muiStyles = (theme) => ({
   videoTile: {
     width: "100%",
+    height: "100%",
     borderRadius: 10,
     border: "1px solid #ccc",
-    maxHeight: 768,
     objectFit: "fill",
   },
 });

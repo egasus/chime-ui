@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { withStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
@@ -30,6 +30,9 @@ const muiStyles = (theme) => ({
   nameTypo: {
     marginLeft: 30,
   },
+  videoTileWrapper: {
+    height: "100%",
+  },
 });
 
 // TODO: Make as component.
@@ -37,15 +40,21 @@ export const screenViewDiv = () =>
   document.getElementById("shared-content-view");
 export const nameplateDiv = () =>
   document.getElementById("share-content-view-nameplate");
-export const getWidthRate = (tileSize) => {
+export const getWidthRate = (tileSize, wrapperHeight) => {
+  let wdRate = 3;
+  let height = wrapperHeight;
   if (tileSize < 2) {
-    return 12;
+    wdRate = 12;
   } else if (tileSize < 5) {
-    return 6;
+    wdRate = 6;
+    height = parseInt(wrapperHeight / 2);
   } else if (tileSize < 10) {
-    return 4;
+    wdRate = 4;
+    height = parseInt(wrapperHeight / 3);
+  } else if (tileSize < 17) {
+    height = parseInt(wrapperHeight / 4);
   }
-  return 3;
+  return [wdRate, height];
 };
 
 const VideoManager = ({
@@ -58,6 +67,8 @@ const VideoManager = ({
   addTile,
   removeTile,
 }) => {
+  const [wrapperHeight, setWrapperHeight] = useState(100);
+  const [sharingName, setSharingName] = useState(null);
   const videoTileDidUpdate = async (tileState) => {
     if (
       !tileState.boundAttendeeId ||
@@ -94,6 +105,17 @@ const VideoManager = ({
         MeetingManager.startViewingScreenShare(screenViewDiv())
       );
     }
+    if (
+      screenMessageDetail.attendeeId ===
+      MeetingManager.joinInfo.Attendee.AttendeeId
+    ) {
+      setSharingName("YOU");
+    } else {
+      const sharingUserName = MeetingManager.getMsgSenderName(
+        screenMessageDetail.attendeeId
+      );
+      setSharingName(sharingUserName);
+    }
 
     // setTimeout(() => {
     //   MeetingManager.getAttendee(screenMessageDetail.attendeeId).then(
@@ -109,6 +131,7 @@ const VideoManager = ({
     // nameplateDiv().innerHTML = "No one is sharing screen";
     MeetingManager.stopViewingScreenShare();
     handleScreenShareStoping();
+    setSharingName(null);
   };
 
   const videoObservers = { videoTileDidUpdate, videoTileWasRemoved };
@@ -124,16 +147,34 @@ const VideoManager = ({
     };
   }, []);
 
+  const calcWrapperHeight = useCallback(() => {
+    if (!isScreenShare && document.getElementById("video-tile-wrapper")) {
+      setWrapperHeight(
+        document.getElementById("video-tile-wrapper").clientHeight
+      );
+    }
+  }, [isScreenShare]);
+
   useEffect(() => {
     if (screenViewDiv()) {
       screenViewDiv().style.height = isScreenShare ? "100%" : "0%";
     }
+    calcWrapperHeight();
   }, [isScreenShare]);
+  window.addEventListener("resize", () => {
+    calcWrapperHeight();
+  });
 
   console.log("allTiles", allTiles);
-  const lgWd = getWidthRate(allTiles.length);
+  const [lgWd, tileHeight] = getWidthRate(allTiles.length, wrapperHeight);
   const videos = allTiles.map((tile, idx) => (
-    <Grid item lg={lgWd} key={`video-tile-${idx}`} className={classes.tileGrid}>
+    <Grid
+      item
+      lg={lgWd}
+      key={`video-tile-${idx}`}
+      style={{ height: tileHeight }}
+      className={classes.tileGrid}
+    >
       <VideoTile
         key={tile.tileId}
         nameplate="Attendee ID"
@@ -160,20 +201,32 @@ const VideoManager = ({
     </Grid>
   ));
 
+  const getSharingTitle = () => {
+    if (!sharingName) return "";
+    if (sharingName === "YOU") {
+      return "YOU are sharing screen";
+    } else {
+      return `${sharingName} is sharing screen`;
+    }
+  };
+
   const isNoVideo = videos.length < 1;
+  console.log("sharingName", sharingName);
 
   return (
     <>
       <div id="shared-content-view" className={classes.screenview}>
         {isScreenShare && (
-          <div id="share-content-view-nameplate">No one is sharing screen</div>
+          <div id="share-content-view-nameplate">{getSharingTitle()}</div>
         )}
       </div>
       {!isScreenShare && (
         <Grid
           container
           justify={!isNoVideo ? "flex-start" : "center"}
-          alignItems="center"
+          alignItems="flex-start"
+          className={classes.videoTileWrapper}
+          id="video-tile-wrapper"
         >
           {!isNoVideo ? (
             videos
