@@ -1,5 +1,5 @@
 export const API_URL =
-  "http://selfie-pop-api-dev.us-east-1.elasticbeanstalk.com/";
+  "http://selfie-pop-api-dev.us-east-1.elasticbeanstalk.com";
 
 export const CHIME_REGIONS = [
   { label: "US East (Ohio)", value: "us-east-2" },
