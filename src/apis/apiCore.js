@@ -1,7 +1,8 @@
 import * as queryString from "query-string";
 import axios from "axios";
+import { API_URL } from "config/constants";
 
-const parameters = queryString.parse(window.location.search);
+// const parameters = queryString.parse(window.location.search);
 // export const baseUrl =
 //   parameters.api_url ||
 //   process.env.REACT_APP_API_URL ||
@@ -11,7 +12,8 @@ let baseUrl;
 if (isDev) {
   baseUrl = "http://localhost:8080";
 } else {
-  baseUrl = "https://selfiepop-api.herokuapp.com";
+  // baseUrl = "https://selfiepop-api.herokuapp.com";
+  baseUrl = API_URL;
 }
 
 function attachAuthorizationHeader(requestConfig) {

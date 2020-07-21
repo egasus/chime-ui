@@ -1,3 +1,6 @@
+export const API_URL =
+  "http://selfie-pop-api-dev.us-east-1.elasticbeanstalk.com/";
+
 export const CHIME_REGIONS = [
   { label: "US East (Ohio)", value: "us-east-2" },
   { label: "US East (N. Virginia)", value: "us-east-1" },

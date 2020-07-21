@@ -1,6 +1,7 @@
 import * as queryString from "query-string";
 import axios from "axios";
 import { get } from "./apiCore";
+import { API_URL } from "config/constants";
 const isDev = process.env.NODE_ENV !== "production";
 
 // const baseUrl = "https://k2rjhzwum7.execute-api.us-east-1.amazonaws.com/Prod";
@@ -9,7 +10,8 @@ let baseUrl;
 if (isDev) {
   baseUrl = "http://localhost:8080";
 } else {
-  baseUrl = "https://selfiepop-api.herokuapp.com";
+  // baseUrl = "https://selfiepop-api.herokuapp.com";
+  baseUrl = API_URL;
 }
 
 // const baseUrl = "https://selfiepop-api.herokuapp.com";
